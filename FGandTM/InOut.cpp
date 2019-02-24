@@ -1,16 +1,19 @@
-#include <iostream>
+п»ї#include <iostream>
 #include <fstream>
 #include <locale>
 #include <string>
+#include <map>
 using namespace std;
 
-const short MAXLINE = 250;				//размер буфера ввода-вывода
-const short ERRMAX = 10;				//макс. кол-во сохраняемых ошибок для текущей строки
-short ErrInx = -1;						//кол-во найденных в текущей строке ошибок
-bool ErrorOverFlow, haveError = true;		//флаги на переполнение ошибок и наличие ошибок в строке		
+const short MAXLINE = 250;				//СЂР°Р·РјРµСЂ Р±СѓС„РµСЂР° РІРІРѕРґР°-РІС‹РІРѕРґР°
+const short ERRMAX = 10;				//РјР°РєСЃ. РєРѕР»-РІРѕ СЃРѕС…СЂР°РЅСЏРµРјС‹С… РѕС€РёР±РѕРє РґР»СЏ С‚РµРєСѓС‰РµР№ СЃС‚СЂРѕРєРё
+short ErrInx = -1;						//РєРѕР»-РІРѕ РЅР°Р№РґРµРЅРЅС‹С… РІ С‚РµРєСѓС‰РµР№ СЃС‚СЂРѕРєРµ РѕС€РёР±РѕРє
+bool ErrorOverFlow, haveError = true;		//С„Р»Р°РіРё РЅР° РїРµСЂРµРїРѕР»РЅРµРЅРёРµ РѕС€РёР±РѕРє Рё РЅР°Р»РёС‡РёРµ РѕС€РёР±РѕРє РІ СЃС‚СЂРѕРєРµ		
 ofstream Flist;
 fstream F("F:\\FGMT\\progPascal6.txt", ios::in);
-unsigned AllErr = 1, lineOfCode = 1;
+unsigned SumErr = 1, lineOfCode = 1;
+map <int, string> AllErrors;
+map <int, string> ::iterator iter = AllErrors.begin();
 
 typedef struct {
 	int lineNumber;
@@ -44,14 +47,15 @@ void printErrors()
 		Flist << fixed;
 		Flist << "**";
 		Flist.width(2);
-		Flist << AllErr;
+		Flist << SumErr;
 		Flist << "**";
 		Flist.width(ErrList[i].tp.charNumber + 1);
 		Flist << "^";
-		Flist << "  Ошибка!Код:" << ErrList[i].code << "\n";
-		Flist << "******"; //<< TableCodeErr[ErrList[i].code] << " ";
+		Flist << "  РћС€РёР±РєР°! РљРѕРґ:" << ErrList[i].code << "\n";
+		iter = AllErrors.find(ErrList[i].code);
+		Flist << "******" <<  " " <<iter->second;
 		Flist << endl;
-		AllErr++;
+		SumErr++;
 	}
 }
 
@@ -79,7 +83,7 @@ void nextch()
 	ch = curLine[positionnow.charNumber];
 }
 
-void error(int code, textposition tp)	//формирование таблицы ошибок текущей строки
+void error(int code, textposition tp)	//С„РѕСЂРјРёСЂРѕРІР°РЅРёРµ С‚Р°Р±Р»РёС†С‹ РѕС€РёР±РѕРє С‚РµРєСѓС‰РµР№ СЃС‚СЂРѕРєРё
 {
 	if (ErrInx == ERRMAX)
 		ErrorOverFlow = true;
@@ -90,6 +94,23 @@ void error(int code, textposition tp)	//формирование таблицы ошибок текущей стро
 		ErrList[ErrInx].tp.lineNumber = tp.lineNumber;
 		ErrList[ErrInx].tp.charNumber = tp.charNumber;
 	}
+}
+
+void tableOfAllError()	//С‚Р°Р±Р»РёС†Р° СЃРѕ РІСЃРµРјРё РІРѕР·РјРѕР¶РЅС‹РјРё РѕС€РёР±РєР°РјРё
+{
+	ifstream A;
+	A.open("F:\\FGMT\\Err.txt");
+	int key;
+	char value[85];
+	while (!A.eof())
+	{
+		A >> key;
+		A.get();
+		if (!A.eof())
+			A.getline(value, 85);
+		AllErrors[key] = value;
+	}
+	A.close();
 }
 
 void createError()
@@ -119,9 +140,11 @@ void StartRead()
 
 int main()
 {
-	Flist.open("F:\\FGMT\\list.txt");
+	setlocale(LC_ALL, "rus");
+	tableOfAllError();
+	Flist.open("f:\\fgmt\\list.txt");
 	StartRead();
 	Flist.close();
-	//cin.get();
+	cin.get();
 	return 0;
 }
