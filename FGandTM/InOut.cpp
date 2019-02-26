@@ -3,6 +3,9 @@
 #include <locale>
 #include <string>
 #include <map>
+#include "DECKEY.h"
+#include "DECW.h"
+#include "symbolIdent.h"
 using namespace std;
 
 const short MAXLINE = 250;				//размер буфера ввода-вывода
@@ -32,56 +35,8 @@ unsigned LastInLine;
 char* curLine;
 char str[MAXLINE];
 
-unsigned readNextLine()
-{
 
-	F.getline(str, MAXLINE, '\n');
-	string s = curLine = str;
-	return s.length();
-}
-
-void printErrors()
-{
-	for (int i = 0; i <= ErrInx; i++)
-	{
-		Flist << fixed;
-		Flist << "**";
-		Flist.width(2);
-		Flist << SumErr;
-		Flist << "**";
-		Flist.width(ErrList[i].tp.charNumber + 1);
-		Flist << "^";
-		Flist << "  Ошибка! Код:" << ErrList[i].code << "\n";
-		iter = AllErrors.find(ErrList[i].code);
-		Flist << "******" <<  " " <<iter->second;
-		Flist << endl;
-		SumErr++;
-	}
-}
-
-void printLine()
-{
-	Flist.width(4);
-	Flist << lineOfCode++;
-	Flist.width(3);
-	Flist << " " << curLine << "\n";
-}
-
-void nextch()
-{
-	if (positionnow.charNumber == LastInLine)
-	{
-		printLine();
-		if (haveError)
-			printErrors();
-		LastInLine = readNextLine();
-		positionnow.lineNumber++;
-		positionnow.charNumber = 0;
-	}
-	else
-		positionnow.charNumber++;
-	ch = curLine[positionnow.charNumber];
-}
+#pragma region Errors
 
 void error(int code, textposition tp)	//формирование таблицы ошибок текущей строки
 {
@@ -113,7 +68,7 @@ void tableOfAllError()	//таблица со всеми возможными о�
 	A.close();
 }
 
-void createError()
+void createError()		//имитация найденных ошибок в строке
 {
 	fstream A("F:\\FGMT\\CoordErr6.txt", ios::in);
 	while (!A.eof())
@@ -123,6 +78,60 @@ void createError()
 		A >> ErrList[ErrInx].tp.charNumber;
 		A >> ErrList[ErrInx].code;
 	}
+}
+
+void printErrors()
+{
+	for (int i = 0; i <= ErrInx; i++)
+	{
+		Flist << fixed;
+		Flist << "**";
+		Flist.width(2);
+		Flist << SumErr;
+		Flist << "**";
+		Flist.width(ErrList[i].tp.charNumber + 1);
+		Flist << "^";
+		Flist << "  Ошибка! Код:" << ErrList[i].code << "\n";
+		iter = AllErrors.find(ErrList[i].code);
+		Flist << "******" << " " << iter->second;
+		Flist << endl;
+		SumErr++;
+	}
+}
+
+#pragma endregion
+
+
+void printLine()
+{
+	Flist.width(4);
+	Flist << lineOfCode++;
+	Flist.width(3);
+	Flist << " " << curLine << "\n";
+}
+
+unsigned readNextLine()
+{
+
+	F.getline(str, MAXLINE, '\n');
+	string s = curLine = str;
+	return s.length();
+}
+
+void nextch()
+{
+	if (positionnow.charNumber == LastInLine)
+	{
+		printLine();
+		if (haveError)
+			printErrors();
+		LastInLine = readNextLine();
+		positionnow.lineNumber++;
+		positionnow.charNumber = 0;
+	}
+	else
+		positionnow.charNumber++;
+	ch = curLine[positionnow.charNumber];
 }
 
 void StartRead()
@@ -136,6 +145,7 @@ void StartRead()
 	LastInLine = s.length();
 	while (!F.eof())
 		nextch();
+
 }
 
 int main()
