@@ -13,13 +13,13 @@ const short MAXINT = 32767;
 const short MAXLINE = 250;				//размер буфера ввода-вывода
 const short ERRMAX = 10;				//макс. кол-во сохраняемых ошибок для текущей строки
 short ErrInx = -1;						//кол-во найденных в текущей строке ошибок
-bool ErrorOverFlow, haveError = true;		//флаги на переполнение ошибок и наличие ошибок в строке		
+bool ErrorOverFlow, haveError = false;		//флаги на переполнение ошибок и наличие ошибок в строке		
 ofstream Flist;
 fstream F("F:\\FGMT\\progPascal6.txt", ios::in);
 unsigned SumErr = 1, lineOfCode = 1, sym, lname;
 map <int, string> AllErrors;
 map <int, string> ::iterator iter = AllErrors.begin();
-bool stop = false;
+bool stop = false, theend = false;
 int p, nmb_int;
 float nmb_float;
 char one_symbol, ch, str[MAXLINE], *addrname, name[MAX_IDENT];
@@ -40,6 +40,7 @@ textposition token;
 unsigned LastInLine;
 char* curLine;
 
+void nextsym();
 
 #pragma region Errors
 
@@ -73,18 +74,6 @@ void tableOfAllError()	//таблица со всеми возможными о�
 	A.close();
 }
 
-void createError()		//имитация найденных ошибок в строке
-{
-	fstream A("F:\\FGMT\\CoordErr6.txt", ios::in);
-	while (!A.eof())
-	{
-		++ErrInx;
-		A >> ErrList[ErrInx].tp.lineNumber;
-		A >> ErrList[ErrInx].tp.charNumber;
-		A >> ErrList[ErrInx].code;
-	}
-}
-
 void printErrors()
 {
 	for (int i = 0; i <= ErrInx; i++)
@@ -94,7 +83,7 @@ void printErrors()
 		Flist.width(2);
 		Flist << SumErr;
 		Flist << "**";
-		Flist.width(ErrList[i].tp.charNumber + 1);
+		Flist.width(ErrList[i].tp.charNumber + 2);
 		Flist << "^";
 		Flist << "  Ошибка! Код:" << ErrList[i].code << "\n";
 		iter = AllErrors.find(ErrList[i].code);
@@ -129,18 +118,29 @@ void nextch()
 	{
 		printLine();
 		if (haveError)
+		{
 			printErrors();
+			for (int k = 0; k <= ErrInx; k++)
+			{
+				ErrList[k].code = NULL;
+				ErrList[k].tp.charNumber = NULL;
+				ErrList[k].tp.lineNumber = NULL;
+			}
+			haveError = false;
+			ErrInx = -1;
+		}
 		if (!F.eof())
 		{
 			LastInLine = readNextLine();
+			haveError = false;
 			positionnow.lineNumber++;
 			positionnow.charNumber = 0;
 		}
 		else
 			stop = true;
-		if (F.eof())
+		/*if (F.eof())
 			while (!stop)
-				nextch();
+				nextch();*/
 	}
 	else
 		positionnow.charNumber++;
@@ -150,6 +150,8 @@ void nextch()
 
 void nextsym()
 {
+	while (ch == '\0')
+		nextch();
 	while (ch == ' ')
 		nextch();
 	token.lineNumber = positionnow.lineNumber;
@@ -160,7 +162,9 @@ void nextsym()
 		p = 2;
 	else				//прочитали спец. символ
 		p = 3;
-	switch (ch)
+	char tmp;
+	int i, j;
+	switch (p)
 	{
 	case (1):
 		lname = 0;
@@ -169,11 +173,16 @@ void nextsym()
 			name[lname++] = ch;
 			nextch();
 		}
-		strcpy(keywords[last[lname]].namekey, name);
-		int i = last[lname - 1] + 1;
+		strcpy_s(keywords[last[lname]].namekey, name);
+		if (lname > 1)
+			i = last[lname - 1] + 1;
+		else
+			i = 0;
 		while (strcmp(keywords[i].namekey, name) != 0)
 			i++;
 		sym = keywords[i].codekey;
+		for (int k = 0; k < MAX_IDENT; k++)
+			name[k] = NULL;
 		break;
 	case (2):
 		int digit;
@@ -186,6 +195,7 @@ void nextsym()
 			else
 			{
 				error(203, positionnow);
+				haveError = true;
 				nmb_int = 0;
 			}
 			nextch();
@@ -259,7 +269,7 @@ void nextsym()
 			nextch();
 			if (ch == '/')
 			{
-				while (ch <= LastInLine)
+				while (positionnow.charNumber <= LastInLine)
 					nextch();
 			}
 			else sym = slash;
@@ -274,7 +284,6 @@ void nextsym()
 			nextch();
 			if (ch == '*')
 			{
-				char tmp;
 				sym = lcomment;
 				do 
 				{
@@ -314,9 +323,27 @@ void nextsym()
 
 		case '\'':
 			sym = charc;
+			j = 0;
+			tmp = ch;
 			nextch();
-			while (ch != '\'')
+			if (ch == '\'')
+			{
+				error(75, positionnow);
+				haveError = true;
 				nextch();
+				break;
+			}
+			while (ch != '\'' && j <= MAX_IDENT)
+			{
+				nextch();
+				j++;
+			}
+			if (j > MAX_IDENT)
+			{
+				error(75, positionnow);
+				haveError = true;
+				nextch();
+			}
 			nextch();
 			break;
 
@@ -338,7 +365,13 @@ void nextsym()
 				nextch();
 			}
 			else
+			{
 				sym = point;
+				theend = true;
+				printLine();
+				if (haveError)
+					printErrors();
+			}
 			break;
 
 		case ',':
@@ -355,23 +388,25 @@ void nextsym()
 			sym = semicolon;
 			nextch();
 			break;
+		default:
+			error(6, positionnow);
+			haveError = true;
+			nextch();
+			break;
 		}
-		break;
-	default:
-		break;
 	}
 }
 
 void StartRead()
 {
 	char str[MAXLINE];
-	createError();
+	//createError();
 	F.getline(str, MAXLINE, '\n');
 	positionnow.lineNumber = 0;
 	positionnow.charNumber = -1;
 	string s = curLine = str;
 	LastInLine = s.length();
-	while (!F.eof())
+	while (!F.eof() || !theend)
 		nextsym();
 		
 

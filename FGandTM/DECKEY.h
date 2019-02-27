@@ -1,19 +1,19 @@
+п»ї
+     /*  Р¤РђР™Р›  DECKEY.H                         */
 
-     /*  ФАЙЛ  DECKEY.H                         */
+      /* РћР‘РЄРЇР’Р›Р•РќРР•      РљРћР”РћР’  РљР›Р®Р§Р•Р’Р«РҐ  РЎР›РћР’  */
 
-      /* ОБЪЯВЛЕНИЕ      КОДОВ  КЛЮЧЕВЫХ  СЛОВ  */
-
-      /*  список  ключевых  слов  */
+      /*  СЃРїРёСЃРѕРє  РєР»СЋС‡РµРІС‹С…  СЃР»РѕРІ  */
       #define   dosy           54
       #define   ifsy           56
       #define   insy           22
       #define   ofsy            8
-      #define   orsy           23           /* разделитель  !   */
+      #define   orsy           23           /* СЂР°Р·РґРµР»РёС‚РµР»СЊ  !   */
       #define   tosy           55
 
-      /* ключевые  слова  длины  2 */
+      /* РєР»СЋС‡РµРІС‹Рµ  СЃР»РѕРІР°  РґР»РёРЅС‹  2 */
 
-      #define   andsy          24            /* разделитель   &  */
+      #define   andsy          24            /* СЂР°Р·РґРµР»РёС‚РµР»СЊ   &  */
       #define   divsy          25
       #define   endsy          13
       #define   forsy          26
@@ -23,7 +23,7 @@
       #define   setsy          29
       #define   varsy          30
 
-      /*  ключевые  слова  длины  3 */
+      /*  РєР»СЋС‡РµРІС‹Рµ  СЃР»РѕРІР°  РґР»РёРЅС‹  3 */
 
       #define   casesy         31
       #define   elsesy         32
@@ -36,7 +36,7 @@
       #define   usessy         36
       #define   withsy         37
 
-      /*  ключевые  слова   длины 4 */
+      /*  РєР»СЋС‡РµРІС‹Рµ  СЃР»РѕРІР°   РґР»РёРЅС‹ 4 */
 
       #define   arraysy        38
       #define   beginsy        17
@@ -45,7 +45,7 @@
       #define   untilsy        53
       #define   whilesy        41
 
-      /*  ключевые  слова   длины  5 */
+      /*  РєР»СЋС‡РµРІС‹Рµ  СЃР»РѕРІР°   РґР»РёРЅС‹  5 */
 
       #define   downtosy        55
       #define   exportsy        91
@@ -57,27 +57,27 @@
       #define   vectorsy        45
       #define   stringsy        46
 
-      /*  ключевые  слова    длины 6 */
+      /*  РєР»СЋС‡РµРІС‹Рµ  СЃР»РѕРІР°    РґР»РёРЅС‹ 6 */
 
       #define   forwardsy       47
       #define   processsy       48
       #define   programsy        3
       #define   segmentsy       49
 
-      /*  ключевые  слова    длины 7 */
+      /*  РєР»СЋС‡РµРІС‹Рµ  СЃР»РѕРІР°    РґР»РёРЅС‹ 7 */
 
       #define   functionsy      77
       #define   separatesy      78
 
-      /*  ключевые  слова    длины 8 */
+      /*  РєР»СЋС‡РµРІС‹Рµ  СЃР»РѕРІР°    РґР»РёРЅС‹ 8 */
 
       #define  interfacesy      79
       #define  proceduresy      80
       #define  qualifiedsy      94
 
-      /*  ключевые   слова   длины 9 */
+      /*  РєР»СЋС‡РµРІС‹Рµ   СЃР»РѕРІР°   РґР»РёРЅС‹ 9 */
 
       #define  implementationsy 81
 
-      /*  ключевые  слова    длины 14 */
+      /*  РєР»СЋС‡РµРІС‹Рµ  СЃР»РѕРІР°    РґР»РёРЅС‹ 14 */
 

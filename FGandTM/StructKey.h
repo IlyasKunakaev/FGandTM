@@ -1,4 +1,4 @@
-#include "DECKEY.h"
+п»ї#include "DECKEY.h"
 #include "DECW.h"
 struct key
 {
@@ -6,7 +6,7 @@ struct key
 	char     namekey[15];
 };
 static struct key  keywords[64] =
-/* таблица ключевых слов и их кодов 		*/
+/* С‚Р°Р±Р»РёС†Р° РєР»СЋС‡РµРІС‹С… СЃР»РѕРІ Рё РёС… РєРѕРґРѕРІ 		*/
 {
 { ident," "},
 { dosy, "do"},
@@ -74,7 +74,7 @@ static struct key  keywords[64] =
 { ident,        "              "}
 };
 
-/* массив номеров строк с кодом ident: 	*/
+/* РјР°СЃСЃРёРІ РЅРѕРјРµСЂРѕРІ СЃС‚СЂРѕРє СЃ РєРѕРґРѕРј ident: 	*/
 unsigned short last[15] =
 {
 -1,0,7,17,28,35,45,50,53,57,58,59,60,61,63
