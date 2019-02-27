@@ -120,6 +120,7 @@
   <ItemGroup>
     <ClInclude Include="DECKEY.h" />
     <ClInclude Include="DECW.h" />
+    <ClInclude Include="StructKey.h" />
     <ClInclude Include="symbolIdent.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
