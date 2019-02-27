@@ -8,18 +8,21 @@
 #include "StructKey.h"
 using namespace std;
 
+const short MAX_IDENT = 15;
+const short MAXINT = 32767;
 const short MAXLINE = 250;				//размер буфера ввода-вывода
 const short ERRMAX = 10;				//макс. кол-во сохраняемых ошибок для текущей строки
 short ErrInx = -1;						//кол-во найденных в текущей строке ошибок
 bool ErrorOverFlow, haveError = true;		//флаги на переполнение ошибок и наличие ошибок в строке		
 ofstream Flist;
 fstream F("F:\\FGMT\\progPascal6.txt", ios::in);
-unsigned SumErr = 1, lineOfCode = 1;
+unsigned SumErr = 1, lineOfCode = 1, sym, lname;
 map <int, string> AllErrors;
 map <int, string> ::iterator iter = AllErrors.begin();
 bool stop = false;
-int p;
-unsigned sym;
+int p, nmb_int;
+float nmb_float;
+char one_symbol, ch, str[MAXLINE], *addrname, name[MAX_IDENT];
 
 typedef struct {
 	int lineNumber;
@@ -33,10 +36,9 @@ typedef struct {
 
 ErrListStruct ErrList;
 textposition positionnow;
-char ch;
+textposition token;
 unsigned LastInLine;
 char* curLine;
-char str[MAXLINE];
 
 
 #pragma region Errors
@@ -150,6 +152,8 @@ void nextsym()
 {
 	while (ch == ' ')
 		nextch();
+	token.lineNumber = positionnow.lineNumber;
+	token.charNumber = positionnow.charNumber;
 	if (isalpha(ch))	//прочитали букву
 		p = 1;
 	else if (isdigit(ch))		//прочитали цифру
@@ -159,10 +163,34 @@ void nextsym()
 	switch (ch)
 	{
 	case (1):
-
+		lname = 0;
+		while (((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9')) && lname < MAX_IDENT)
+		{
+			name[lname++] = ch;
+			nextch();
+		}
+		strcpy(keywords[last[lname]].namekey, name);
+		int i = last[lname - 1] + 1;
+		while (strcmp(keywords[i].namekey, name) != 0)
+			i++;
+		sym = keywords[i].codekey;
 		break;
 	case (2):
-
+		int digit;
+		nmb_int = 0;
+		while (ch >= '0' && ch <= '9')
+		{
+			digit = ch - '0';
+			if (nmb_int < MAXINT / 10 || (nmb_int == MAXINT / 10 && nmb_int <= MAXINT % 10))
+				nmb_int = 10 * nmb_int + digit;
+			else
+			{
+				error(203, positionnow);
+				nmb_int = 0;
+			}
+			nextch();
+		}
+		sym = intc;
 		break;
 	case (3):
 		switch (ch)
@@ -246,8 +274,22 @@ void nextsym()
 			nextch();
 			if (ch == '*')
 			{
+				char tmp;
 				sym = lcomment;
-				nextch();
+				do 
+				{
+					nextch();
+					if (ch == '*')
+					{
+						tmp = ch;
+						nextch();
+						if (ch == ')' && tmp == '*')
+						{
+							nextch();
+							break;
+						}
+					}
+				} while (ch != '*');
 			}
 			else
 				sym = leftpar;
@@ -263,6 +305,7 @@ void nextsym()
 			while (ch != '}')
 				nextch();
 		}
+			nextch();
 			break;
 
 		case '}':
@@ -270,6 +313,11 @@ void nextsym()
 			break;
 
 		case '\'':
+			sym = charc;
+			nextch();
+			while (ch != '\'')
+				nextch();
+			nextch();
 			break;
 
 		case '[':
