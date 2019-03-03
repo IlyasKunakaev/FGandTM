@@ -1,4 +1,5 @@
-﻿#include <iostream>
+﻿#define _CRT_SECURE_NO_WARNINGS
+#include <iostream>
 #include <fstream>
 #include <locale>
 #include <string>
@@ -16,10 +17,11 @@ short ErrInx = -1;						//кол-во найденных в текущей ст�
 bool ErrorOverFlow, haveError = false;		//флаги на переполнение ошибок и наличие ошибок в строке		
 ofstream Flist;
 fstream F("F:\\FGMT\\progPascal6.txt", ios::in);
+ofstream ListOfCode;
 unsigned SumErr = 1, lineOfCode = 1, sym, lname;
 map <int, string> AllErrors;
 map <int, string> ::iterator iter = AllErrors.begin();
-bool stop = false, theend = false;
+bool stop = false, theend = false, AllOk = true, isComment = false;
 int p, nmb_int;
 float nmb_float;
 char one_symbol, ch, str[MAXLINE], *addrname, name[MAX_IDENT];
@@ -112,11 +114,33 @@ unsigned readNextLine()
 	return s.length();
 }
 
+void nextchComment()
+{
+	if (positionnow.charNumber == LastInLine)
+	{
+		if (!F.eof())
+		{
+			LastInLine = readNextLine();
+			haveError = false;
+			positionnow.lineNumber++;
+			positionnow.charNumber = 0;
+		}
+		else
+			stop = true;
+	}
+	else
+		positionnow.charNumber++;
+	ch = curLine[positionnow.charNumber];
+}
+
 void nextch()
 {
 	if (positionnow.charNumber == LastInLine)
 	{
+
 		printLine();
+		if (!isComment)
+			ListOfCode << endl;
 		if (haveError)
 		{
 			printErrors();
@@ -138,9 +162,6 @@ void nextch()
 		}
 		else
 			stop = true;
-		/*if (F.eof())
-			while (!stop)
-				nextch();*/
 	}
 	else
 		positionnow.charNumber++;
@@ -152,6 +173,7 @@ void nextsym()
 {
 	while (ch == '\0')
 		nextch();
+
 	while (ch == ' ')
 		nextch();
 	token.lineNumber = positionnow.lineNumber;
@@ -181,7 +203,7 @@ void nextsym()
 		while (strcmp(keywords[i].namekey, name) != 0)
 			i++;
 		sym = keywords[i].codekey;
-		for (int k = 0; k < MAX_IDENT; k++)
+		for (int k = 0; k < lname; k++)
 			name[k] = NULL;
 		break;
 	case (2):
@@ -195,12 +217,32 @@ void nextsym()
 			else
 			{
 				error(203, positionnow);
+				
 				haveError = true;
 				nmb_int = 0;
 			}
 			nextch();
 		}
-		sym = intc;
+		if (ch == ',')
+		{
+			nextch();
+			while (ch >= '0' && ch <= '9')
+			{
+				digit = ch - '0';
+				if (nmb_int < MAXINT / 10 || (nmb_int == MAXINT / 10 && nmb_int <= MAXINT % 10))
+					nmb_int = 10 * nmb_int + digit;
+				else
+				{
+					error(203, positionnow);
+					haveError = true;
+					nmb_int = 0;
+				}
+				nextch();
+			}
+			sym = floatc;
+		}
+		else
+			sym = intc;
 		break;
 	case (3):
 		switch (ch)
@@ -269,8 +311,17 @@ void nextsym()
 			nextch();
 			if (ch == '/')
 			{
-				while (positionnow.charNumber <= LastInLine)
+				isComment = true;
+				AllOk = false;
+				string currentStr = curLine;
+				currentStr.erase(positionnow.charNumber-1);
+				strncpy(curLine, currentStr.c_str(), currentStr.length() + 1);
+				while (positionnow.charNumber < LastInLine)
+				{
 					nextch();
+				}
+				nextch();
+				ListOfCode << endl;
 			}
 			else sym = slash;
 			break;
@@ -284,17 +335,24 @@ void nextsym()
 			nextch();
 			if (ch == '*')
 			{
+				AllOk = false;
 				sym = lcomment;
-				do 
+				isComment = true;
+				string currentStr = curLine;
+				currentStr.erase(positionnow.charNumber - 1);
+				strncpy(curLine, currentStr.c_str(), currentStr.length() + 1);
+				do
 				{
-					nextch();
+					nextchComment();
 					if (ch == '*')
 					{
 						tmp = ch;
-						nextch();
+						nextchComment();
 						if (ch == ')' && tmp == '*')
 						{
-							nextch();
+							while (positionnow.charNumber < LastInLine)
+								nextchComment();
+							nextchComment();
 							break;
 						}
 					}
@@ -311,11 +369,20 @@ void nextsym()
 
 		case '{':
 		{
-			while (ch != '}')
-				nextch();
+			AllOk = false;
+			isComment = true;
+			string currentStr = curLine;
+			currentStr.erase(positionnow.charNumber);
+			strncpy(curLine, currentStr.c_str(), currentStr.length() + 1);
+			do
+			{
+				nextchComment();
+			} while (ch != '}');
+			while (positionnow.charNumber < LastInLine)
+				nextchComment();
+			nextchComment();
 		}
-			nextch();
-			break;
+		break;
 
 		case '}':
 			nextch();
@@ -390,6 +457,7 @@ void nextsym()
 			break;
 		default:
 			error(6, positionnow);
+			AllOk = false;
 			haveError = true;
 			nextch();
 			break;
@@ -401,24 +469,30 @@ void StartRead()
 {
 	char str[MAXLINE];
 	//createError();
+	ListOfCode.open("F:\\fgmt\\ListOfCode.txt");
 	F.getline(str, MAXLINE, '\n');
 	positionnow.lineNumber = 0;
 	positionnow.charNumber = -1;
 	string s = curLine = str;
 	LastInLine = s.length();
 	while (!F.eof() || !theend)
+	{
+		AllOk = true;
+		isComment = false;
 		nextsym();
-		
-
+		if (AllOk)
+			ListOfCode << sym << " ";
+	}
+	ListOfCode.close();
 }
 
 int main()
 {
 	setlocale(LC_ALL, "rus");
 	tableOfAllError();
-	Flist.open("f:\\fgmt\\list.txt");
+	Flist.open("F:\\fgmt\\list.txt");
 	StartRead();
 	Flist.close();
-	cin.get();
+	//cin.get();
 	return 0;
 }
