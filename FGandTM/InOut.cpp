@@ -11,17 +11,18 @@ using namespace std;
 
 const short MAX_IDENT = 15;
 const short MAXINT = 32767;
+const int MAXFLOAT = 170000000;
 const short MAXLINE = 250;				//размер буфера ввода-вывода
 const short ERRMAX = 10;				//макс. кол-во сохраняемых ошибок для текущей строки
 short ErrInx = -1;						//кол-во найденных в текущей строке ошибок
 bool ErrorOverFlow, haveError = false;		//флаги на переполнение ошибок и наличие ошибок в строке		
 ofstream Flist;
-fstream F("F:\\FGMT\\progPascal6.txt", ios::in);
+fstream F("F:\\FGMT\\PascalCode\\progPascal4.txt", ios::in);
 ofstream ListOfCode;
 unsigned SumErr = 1, lineOfCode = 1, sym, lname;
 map <int, string> AllErrors;
 map <int, string> ::iterator iter = AllErrors.begin();
-bool stop = false, theend = false, AllOk = true, isComment = false;
+bool stop = false, theend = false, AllOk = true, isComment = false, isMinusNumber = false;
 int p, nmb_int;
 float nmb_float;
 char one_symbol, ch, str[MAXLINE], *addrname, name[MAX_IDENT];
@@ -169,6 +170,67 @@ void nextch()
 	//return ch;
 }
 
+void processingNumber()
+{
+	int digit;
+	nmb_int = 0;
+	nmb_float = 0;
+	bool errNumber = false;
+	textposition errNum;
+	while (ch >= '0' && ch <= '9')
+	{
+		digit = ch - '0';
+		if (nmb_int < MAXINT / 10 || (nmb_int == MAXINT / 10 && nmb_int <= MAXINT % 10))
+			nmb_int = 10 * nmb_int + digit;
+		else
+		{
+			errNumber = true;
+			errNum.charNumber = positionnow.charNumber;
+			errNum.lineNumber = positionnow.lineNumber;
+
+
+			//error(203, positionnow);
+
+			haveError = true;
+			nmb_float = nmb_int;
+			nmb_int = 0;
+		}
+		if (ch >= '0' && ch <= '9')
+		{
+			nextch();
+			while (ch >= '0' && ch <= '9')
+			{
+				digit = ch - '0';
+				if (nmb_float < MAXFLOAT / 10 || (nmb_float == MAXFLOAT / 10 && nmb_float <= MAXFLOAT % 10))
+					nmb_float = 10 * nmb_float + digit;
+
+			}
+		}
+
+	}
+	if (ch == ',')
+	{
+		nmb_int = nmb_float;
+		nextch();
+		while (ch >= '0' && ch <= '9')
+		{
+			digit = ch - '0';
+			if (nmb_int < MAXINT / 10 || (nmb_int == MAXINT / 10 && nmb_int <= MAXINT % 10))
+				nmb_int = 10 * nmb_int + digit;
+			else
+			{
+				error(203, positionnow);
+				haveError = true;
+				nmb_int = 0;
+			}
+			nextch();
+		}
+		sym = floatc;
+	}
+	else
+		sym = intc;
+}
+
 void nextsym()
 {
 	while (ch == '\0')
@@ -207,42 +269,7 @@ void nextsym()
 			name[k] = NULL;
 		break;
 	case (2):
-		int digit;
-		nmb_int = 0;
-		while (ch >= '0' && ch <= '9')
-		{
-			digit = ch - '0';
-			if (nmb_int < MAXINT / 10 || (nmb_int == MAXINT / 10 && nmb_int <= MAXINT % 10))
-				nmb_int = 10 * nmb_int + digit;
-			else
-			{
-				error(203, positionnow);
-				
-				haveError = true;
-				nmb_int = 0;
-			}
-			nextch();
-		}
-		if (ch == ',')
-		{
-			nextch();
-			while (ch >= '0' && ch <= '9')
-			{
-				digit = ch - '0';
-				if (nmb_int < MAXINT / 10 || (nmb_int == MAXINT / 10 && nmb_int <= MAXINT % 10))
-					nmb_int = 10 * nmb_int + digit;
-				else
-				{
-					error(203, positionnow);
-					haveError = true;
-					nmb_int = 0;
-				}
-				nextch();
-			}
-			sym = floatc;
-		}
-		else
-			sym = intc;
+		processingNumber();
 		break;
 	case (3):
 		switch (ch)
@@ -293,7 +320,11 @@ void nextsym()
 
 		case '-':
 			sym = minus;
+			char tmp;
 			nextch();
+			tmp = ch;
+			if (ch >= '0' && ch <= '9')
+				isMinusNumber = true;
 			break;
 
 		case '*':
@@ -314,7 +345,7 @@ void nextsym()
 				isComment = true;
 				AllOk = false;
 				string currentStr = curLine;
-				currentStr.erase(positionnow.charNumber-1);
+				currentStr.erase(positionnow.charNumber - 1);
 				strncpy(curLine, currentStr.c_str(), currentStr.length() + 1);
 				while (positionnow.charNumber < LastInLine)
 				{
@@ -454,6 +485,10 @@ void nextsym()
 		case ';':
 			sym = semicolon;
 			nextch();
+			break;
+		case '\0':
+			while (ch == '\0')
+				nextch();
 			break;
 		default:
 			error(6, positionnow);
