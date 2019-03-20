@@ -1,4 +1,5 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
+﻿#pragma region includes
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include <fstream>
 #include <locale>
@@ -8,6 +9,9 @@
 #include "DECKEY.h"
 #include "StructKey.h"
 using namespace std;
+#pragma endregion
+
+#pragma region vars
 
 const short MAX_IDENT = 15;
 const short MAXINT = 32767;
@@ -40,6 +44,8 @@ textposition token;
 unsigned LastInLine;
 char* curLine;
 void nextsym();
+
+#pragma endregion
 
 #pragma region Errors
 
@@ -94,6 +100,7 @@ void printErrors()
 
 #pragma endregion
 
+#pragma region leks
 
 void printLine()
 {
@@ -484,7 +491,7 @@ void nextsym()
 			}
 			if (F.eof())
 			{
-				error(75, positionnow);
+				error(76, positionnow);
 				haveError = true;
 				theend = true;
 				printErrors();
@@ -548,6 +555,155 @@ void nextsym()
 	}
 }
 
+#pragma endregion
+
+#pragma region Syntax
+
+/*
+Общая минимальная часть. Основные разделы программы: раздел описания переменных, раздел операторов. 
+Переменные стандартных типов (Boolean, integer, real, char). Числовые константы. 
+Арифметическое выражение (в выражении допустимы только константы, переменные, операции +, –, *, / и скобки). 
+Оператор присваивания и составной оператор.
+
+Общая дополнительная часть. Раздел описания типов. 
+Выражение (полностью, включая арифметические, логические операции, сравнения и т.д., 
+			но только над константами и простыми переменными (не индексированные, не поля записи, не указатели)). 
+			Условный оператор (if). Оператор цикла с предусловием (while).
+
+Индивидуальная часть 
+12.	Раздел описания констант. Ссылочные типы данных. Указатели в выражениях. Оператор выбора (case).
+*/
+void accept(unsigned symbolexpected)
+{
+	if (sym == symbolexpected)
+		nextsym();
+	else
+		error(symbolexpected, token);
+}
+
+void block()
+{
+	//labelpart();		//раздел меток
+	constpart();		//раздел констант (инд)
+	typepart();			//раздел типов (доп)
+	varpart();			//раздел переменных (мин)
+	//procfuncpart();		//раздел процедур и функций
+	statementpart();	//раздел операторов (мин)
+}
+
+void constpart()
+{
+
+}
+
+void typepart()
+{
+
+}
+
+void varpart()
+{
+	if (sym == varsy)
+	{
+		accept(varsy);
+		do
+		{
+			vardeclaration();
+			accept(semicolon);
+		} while (sym == ident);
+	}
+}
+
+void vardeclaration()
+{
+	accept(ident);
+	while (sym == comma)
+	{
+		accept(comma);
+		accept(ident);
+	}
+	accept(colon);
+	type();
+}
+
+void type()
+{
+	switch (sym)
+	{
+	case (ident):	//идентификатор, имя
+		accept(ident);
+		break;
+	case (leftpar):	//перечислимый тип
+		numtype();
+		break;
+	case (plus):
+		nextsym();
+		accept(intc);
+		break;
+	case (minus):
+		nextsym();
+		accept(intc);
+		break;
+	case (intc):	
+		accept(intc);
+		accept(twopoints);
+		accept(intc);
+		break;
+	case (charc):
+		accept(charc);
+		break;
+	case (arrow): //ссылочный тип
+		accept(arrow);
+		break;
+	}
+}
+
+void numtype()
+{
+	accept(leftpar);
+	accept(ident);
+	while (sym == comma)
+	{
+		accept(comma);
+		accept(ident);
+	}
+	accept(rightpar);
+}
+
+void statementpart()
+{
+	accept(beginsy);
+	statement();
+	while (sym == semicolon)
+	{
+		accept(semicolon);
+		if (sym != endsy)
+			statement();
+	}
+	accept(endsy);
+}
+
+void statement()
+{
+	if (sym != endsy)
+	{
+
+	}
+	else
+		nextsym();
+}
+
+void programme()
+{
+	accept(programsy);
+	accept(ident);
+	accept(semicolon);
+	block();
+	accept(point);
+}
+
+
+
 void StartRead()
 {
 	char str[MAXLINE];
@@ -565,16 +721,10 @@ void StartRead()
 			ListOfCode << sym << " ";
 	}
 	ListOfCode.close();
-	Flist << "Компиляция окончена! Количество ошибок: " << SumErr-1;
+	Flist << "Компиляция окончена! Количество ошибок: " << SumErr - 1;
 }
 
-void accept(unsigned symbolexpected)
-{
-	if (sym == symbolexpected)
-		nextsym();
-	else
-		error(symbolexpected, token);
-}
+#pragma endregion
 
 int main()
 {
@@ -583,6 +733,5 @@ int main()
 	Flist.open("F:\\fgmt\\list.txt");
 	StartRead();
 	Flist.close();
-	//cin.get();
 	return 0;
 }
