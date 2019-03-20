@@ -17,32 +17,28 @@ const short ERRMAX = 10;				//макс. кол-во сохраняемых ош�
 short ErrInx = -1;						//кол-во найденных в текущей строке ошибок
 bool ErrorOverFlow, haveError = false;		//флаги на переполнение ошибок и наличие ошибок в строке		
 ofstream Flist;
-fstream F("F:\\FGMT\\progPascal6.txt", ios::in);
+fstream F("F:\\FGMT\\PascalCode\\progPascal6.txt", ios::in);
 ofstream ListOfCode;
 unsigned SumErr = 1, lineOfCode = 1, sym, lname;
 map <int, string> AllErrors;
 map <int, string> ::iterator iter = AllErrors.begin();
-bool stop = false, theend = false, AllOk = true, isComment = false, haveComma = false;
+bool stop = false, theend = false, AllOk = true, isComment = false, haveComma = false, theendComment = false;
 int p, nmb_int;
 float nmb_float;
 char one_symbol, ch, str[MAXLINE], *addrname, name[MAX_IDENT];
-
 typedef struct {
 	int lineNumber;
 	int charNumber;
 }textposition;
-
 typedef struct {
 	unsigned code;
 	textposition tp;
 }ErrListStruct[ERRMAX];
-
 ErrListStruct ErrList;
 textposition positionnow;
 textposition token;
 unsigned LastInLine;
 char* curLine;
-
 void nextsym();
 
 #pragma region Errors
@@ -63,7 +59,7 @@ void error(int code, textposition tp)	//формирование таблицы 
 void tableOfAllError()	//таблица со всеми возможными ошибками
 {
 	ifstream A;
-	A.open("F:\\FGMT\\Err.txt");
+	A.open("F:\\FGMT\\PascalCode\\Err.txt");
 	int key;
 	char value[85];
 	while (!A.eof())
@@ -119,6 +115,7 @@ void nextchComment()
 {
 	if (positionnow.charNumber == LastInLine)
 	{
+		printLine();
 		if (!F.eof())
 		{
 			LastInLine = readNextLine();
@@ -127,7 +124,11 @@ void nextchComment()
 			positionnow.charNumber = 0;
 		}
 		else
+		{
+			theendComment = true;
 			stop = true;
+		}
+			
 	}
 	else
 		positionnow.charNumber++;
@@ -138,7 +139,6 @@ void nextch()
 {
 	if (positionnow.charNumber == LastInLine)
 	{
-
 		printLine();
 		if (!isComment)
 			ListOfCode << endl;
@@ -162,12 +162,11 @@ void nextch()
 			positionnow.charNumber = 0;
 		}
 		else
-			stop = true;
+			stop = true;	
 	}
 	else
 		positionnow.charNumber++;
 	ch = curLine[positionnow.charNumber];
-	//return ch;
 }
 
 void processingNumber()
@@ -175,7 +174,7 @@ void processingNumber()
 	int digit;
 	nmb_int = 0;
 	nmb_float = 0;
-	bool errNumber = false;
+	bool errNumber = false, errInt = false;
 	textposition errNum;
 	errNum.charNumber = positionnow.charNumber;
 	errNum.lineNumber = positionnow.lineNumber;
@@ -189,13 +188,15 @@ void processingNumber()
 			nmb_int = 10 * nmb_int + digit;
 			errNumber = true;
 			haveError = true;
-			nmb_float = nmb_int;
+			errInt = true;
+			nmb_float = (float)nmb_int;
 		}
 		nextch();
 	}
 	
 	if (ch >= '0' && ch <= '9')
 	{
+		errInt = false;
 		while (ch >= '0' && ch <= '9')
 		{
 			digit = ch - '0';
@@ -212,13 +213,15 @@ void processingNumber()
 					nextch();
 					haveComma = true;
 				}
-				if (ch == ',')
+				if (ch == '.')
 				{		
-					error(204, errNum);
+					sym = floatc;
+					error(207, errNum);
 					nextch();
 				}
 				else 
 				{
+					sym = intc;
 					error(203, errNum);
 					nextch();
 				}
@@ -232,11 +235,22 @@ void processingNumber()
 			if (!haveComma)
 				nextch();
 		}
+		if (ch == '.')
+		{
+			nextch();
+			if (ch < '0' || ch > '9')
+			{
+				errNumber = true;
+				haveError = true;
+				error(201, errNum);
+			}
+			while (ch >= '0' && ch <= '9')
+				nextch();
+			sym = floatc;
+		}
 	}
-
-	if (ch == ',')
+	else if (ch == '.')
 	{
-		nmb_int = nmb_float;
 		nextch();
 		if (ch < '0' || ch > '9')
 		{
@@ -249,7 +263,11 @@ void processingNumber()
 		sym = floatc;
 	}
 	else
+	{
 		sym = intc;
+		if (errInt)
+			error(203, errNum);
+	}
 }
 
 void nextsym()
@@ -267,7 +285,6 @@ void nextsym()
 		p = 2;
 	else				//прочитали спец. символ
 		p = 3;
-	char tmp;
 	int i, j;
 	switch (p)
 	{
@@ -286,7 +303,7 @@ void nextsym()
 		while (strcmp(keywords[i].namekey, name) != 0)
 			i++;
 		sym = keywords[i].codekey;
-		for (int k = 0; k < lname; k++)
+		for (unsigned int k = 0; k < lname; k++)
 			name[k] = NULL;
 		break;
 	case (2):
@@ -344,8 +361,6 @@ void nextsym()
 			char tmp;
 			nextch();
 			tmp = ch;
-			/*if (ch >= '0' && ch <= '9')
-				isMinusNumber = true;*/
 			break;
 
 		case '*':
@@ -365,15 +380,13 @@ void nextsym()
 			{
 				isComment = true;
 				AllOk = false;
-				string currentStr = curLine;
-				currentStr.erase(positionnow.charNumber - 1);
-				strncpy(curLine, currentStr.c_str(), currentStr.length() + 1);
-				while (positionnow.charNumber < LastInLine)
+				while ((unsigned)positionnow.charNumber < LastInLine)
 				{
 					nextch();
 				}
 				nextch();
 				ListOfCode << endl;
+				isComment = false;
 			}
 			else sym = slash;
 			break;
@@ -390,9 +403,6 @@ void nextsym()
 				AllOk = false;
 				sym = lcomment;
 				isComment = true;
-				string currentStr = curLine;
-				currentStr.erase(positionnow.charNumber - 1);
-				strncpy(curLine, currentStr.c_str(), currentStr.length() + 1);
 				do
 				{
 					nextchComment();
@@ -402,13 +412,21 @@ void nextsym()
 						nextchComment();
 						if (ch == ')' && tmp == '*')
 						{
-							while (positionnow.charNumber < LastInLine)
+							while ((unsigned)positionnow.charNumber < LastInLine)
 								nextchComment();
 							nextchComment();
 							break;
 						}
 					}
-				} while (ch != '*');
+				} while (ch != '*' && !theendComment);
+				if (F.eof())
+				{
+					error(86, positionnow);
+					theend = true;
+					printErrors();
+				}
+					
+				isComment = false;
 			}
 			else
 				sym = leftpar;
@@ -423,16 +441,23 @@ void nextsym()
 		{
 			AllOk = false;
 			isComment = true;
-			string currentStr = curLine;
-			currentStr.erase(positionnow.charNumber);
-			strncpy(curLine, currentStr.c_str(), currentStr.length() + 1);
 			do
 			{
 				nextchComment();
-			} while (ch != '}');
-			while (positionnow.charNumber < LastInLine)
+			} while (ch != '}' && !theendComment);
+			if (F.eof())
+			{
+				error(86, positionnow);
+				theend = true;
+				printErrors();
+			}
+			else 
+			{
+				while ((unsigned)positionnow.charNumber < LastInLine)
+					nextchComment();
 				nextchComment();
-			nextchComment();
+			}
+			isComment = false;
 		}
 		break;
 
@@ -452,18 +477,20 @@ void nextsym()
 				nextch();
 				break;
 			}
-			while (ch != '\'' && j <= MAX_IDENT)
+			while (ch != '\'' && !theendComment)
 			{
-				nextch();
+				nextchComment();
 				j++;
 			}
-			if (j > MAX_IDENT)
+			if (F.eof())
 			{
 				error(75, positionnow);
 				haveError = true;
-				nextch();
+				theend = true;
+				printErrors();
 			}
-			nextch();
+			else 
+				nextch();
 			break;
 
 		case '[':
@@ -524,7 +551,6 @@ void nextsym()
 void StartRead()
 {
 	char str[MAXLINE];
-	//createError();
 	ListOfCode.open("F:\\fgmt\\ListOfCode.txt");
 	F.getline(str, MAXLINE, '\n');
 	positionnow.lineNumber = 0;
@@ -534,12 +560,20 @@ void StartRead()
 	while (!F.eof() || !theend)
 	{
 		AllOk = true;
-		isComment = false;
 		nextsym();
 		if (AllOk)
 			ListOfCode << sym << " ";
 	}
 	ListOfCode.close();
+	Flist << "Компиляция окончена! Количество ошибок: " << SumErr-1;
+}
+
+void accept(unsigned symbolexpected)
+{
+	if (sym == symbolexpected)
+		nextsym();
+	else
+		error(symbolexpected, token);
 }
 
 int main()
