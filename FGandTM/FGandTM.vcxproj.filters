@@ -29,5 +29,8 @@
     <ClInclude Include="StructKey.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="symbolIdent.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
