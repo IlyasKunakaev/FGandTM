@@ -279,15 +279,16 @@ void processingNumber()
 
 void nextsym()
 {
-	while (ch == '\0')
+	while (ch == '\0' || ch == '\t')
 		nextch();
 
 	while (ch == ' ')
 		nextch();
 	token.lineNumber = positionnow.lineNumber;
 	token.charNumber = positionnow.charNumber;
-	if (isalpha(ch))	//прочитали букву
-		p = 1;
+	if ((ch < 'А' || ch > 'Я') && (ch < 'а' || ch > 'я'))
+		if (isalpha(ch))	//прочитали букву
+			p = 1;
 	else if (isdigit(ch))		//прочитали цифру
 		p = 2;
 	else				//прочитали спец. символ
@@ -573,134 +574,134 @@ void nextsym()
 Индивидуальная часть 
 12.	Раздел описания констант. Ссылочные типы данных. Указатели в выражениях. Оператор выбора (case).
 */
-void accept(unsigned symbolexpected)
-{
-	if (sym == symbolexpected)
-		nextsym();
-	else
-		error(symbolexpected, token);
-}
-
-void block()
-{
-	//labelpart();		//раздел меток
-	constpart();		//раздел констант (инд)
-	typepart();			//раздел типов (доп)
-	varpart();			//раздел переменных (мин)
-	//procfuncpart();		//раздел процедур и функций
-	statementpart();	//раздел операторов (мин)
-}
-
-void constpart()
-{
-
-}
-
-void typepart()
-{
-
-}
-
-void varpart()
-{
-	if (sym == varsy)
-	{
-		accept(varsy);
-		do
-		{
-			vardeclaration();
-			accept(semicolon);
-		} while (sym == ident);
-	}
-}
-
-void vardeclaration()
-{
-	accept(ident);
-	while (sym == comma)
-	{
-		accept(comma);
-		accept(ident);
-	}
-	accept(colon);
-	type();
-}
-
-void type()
-{
-	switch (sym)
-	{
-	case (ident):	//идентификатор, имя
-		accept(ident);
-		break;
-	case (leftpar):	//перечислимый тип
-		numtype();
-		break;
-	case (plus):
-		nextsym();
-		accept(intc);
-		break;
-	case (minus):
-		nextsym();
-		accept(intc);
-		break;
-	case (intc):	
-		accept(intc);
-		accept(twopoints);
-		accept(intc);
-		break;
-	case (charc):
-		accept(charc);
-		break;
-	case (arrow): //ссылочный тип
-		accept(arrow);
-		break;
-	}
-}
-
-void numtype()
-{
-	accept(leftpar);
-	accept(ident);
-	while (sym == comma)
-	{
-		accept(comma);
-		accept(ident);
-	}
-	accept(rightpar);
-}
-
-void statementpart()
-{
-	accept(beginsy);
-	statement();
-	while (sym == semicolon)
-	{
-		accept(semicolon);
-		if (sym != endsy)
-			statement();
-	}
-	accept(endsy);
-}
-
-void statement()
-{
-	if (sym != endsy)
-	{
-
-	}
-	else
-		nextsym();
-}
-
-void programme()
-{
-	accept(programsy);
-	accept(ident);
-	accept(semicolon);
-	block();
-	accept(point);
-}
+//void accept(unsigned symbolexpected)
+//{
+//	if (sym == symbolexpected)
+//		nextsym();
+//	else
+//		error(symbolexpected, token);
+//}
+//
+//void block()
+//{
+//	//labelpart();		//раздел меток
+//	constpart();		//раздел констант (инд)
+//	typepart();			//раздел типов (доп)
+//	varpart();			//раздел переменных (мин)
+//	//procfuncpart();		//раздел процедур и функций
+//	statementpart();	//раздел операторов (мин)
+//}
+//
+//void constpart()
+//{
+//
+//}
+//
+//void typepart()
+//{
+//
+//}
+//
+//void varpart()
+//{
+//	if (sym == varsy)
+//	{
+//		accept(varsy);
+//		do
+//		{
+//			vardeclaration();
+//			accept(semicolon);
+//		} while (sym == ident);
+//	}
+//}
+//
+//void vardeclaration()
+//{
+//	accept(ident);
+//	while (sym == comma)
+//	{
+//		accept(comma);
+//		accept(ident);
+//	}
+//	accept(colon);
+//	type();
+//}
+//
+//void type()
+//{
+//	switch (sym)
+//	{
+//	case (ident):	//идентификатор, имя
+//		accept(ident);
+//		break;
+//	case (leftpar):	//перечислимый тип
+//		numtype();
+//		break;
+//	case (plus):
+//		nextsym();
+//		accept(intc);
+//		break;
+//	case (minus):
+//		nextsym();
+//		accept(intc);
+//		break;
+//	case (intc):	
+//		accept(intc);
+//		accept(twopoints);
+//		accept(intc);
+//		break;
+//	case (charc):
+//		accept(charc);
+//		break;
+//	case (arrow): //ссылочный тип
+//		accept(arrow);
+//		break;
+//	}
+//}
+//
+//void numtype()
+//{
+//	accept(leftpar);
+//	accept(ident);
+//	while (sym == comma)
+//	{
+//		accept(comma);
+//		accept(ident);
+//	}
+//	accept(rightpar);
+//}
+//
+//void statementpart()
+//{
+//	accept(beginsy);
+//	statement();
+//	while (sym == semicolon)
+//	{
+//		accept(semicolon);
+//		if (sym != endsy)
+//			statement();
+//	}
+//	accept(endsy);
+//}
+//
+//void statement()
+//{
+//	if (sym != endsy)
+//	{
+//
+//	}
+//	else
+//		nextsym();
+//}
+//
+//void programme()
+//{
+//	accept(programsy);
+//	accept(ident);
+//	accept(semicolon);
+//	block();
+//	accept(point);
+//}
 
 
 
