@@ -1,0 +1,32 @@
+var
+  n, m, i, p, j, t, s, k, d : integer;
+  x : xarray;
+  l : larray;
+  f1, f2 : text;
+begin
+  k := 0;
+  d := 0;
+      if p = 1 then begin
+                      k := k + 1;
+                    end
+               else begin
+                      if k > 0 then begin
+                                      j := 1;
+                                      while (l <> s - x) and (j <= d) do
+                                        j := j + 1;
+                                      if j <= d then l := l + 1
+                                                else begin
+                                                      
+                                                       d := d + 1;
+                                                       l := s - x;
+                                                       l := 1;
+                                                     end;
+                                      k := k - 1;
+                                    end;
+                    end;
+    
+  s := 0;
+      k := 0;
+        if 2*t >= l then k := k + l;
+
+end.

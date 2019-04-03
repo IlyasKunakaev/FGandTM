@@ -1,0 +1,54 @@
+program ;
+
+const G = 9.8;
+	  H = 1;
+type 
+type_1 = real;
+type_2 = ^type_2;
+type_3 = boolean;
+
+var
+	a:integer
+	b:integer  %;
+	c:integer$;
+	d:boolean;
+	e:^real;
+	f:char ;
+begin
+	a:=-123.411; //комментарий на одну строку
+	if (G<43000) then
+	begin
+		a:=123456789.99;
+		if (a>10000) then
+		begin
+			a:=1234567899.99 / 124 * (145 + H);
+		end;
+		else 
+		begin
+			b:=11434;
+		end;
+	end;
+	e^:=41414;
+	while(a<b) do
+	begin
+		a:=a+1;
+	end;
+	case NUM of
+	0:a:=c;
+	1:c:=b+;
+	else b:=a*b+c;
+	end;
+	a:=123413.;
+	b:=312;
+	c:=a+b+'';
+
+ { коммент }
+
+(*
+много
+строч
+ный
+коммент
+*)
+  c:=35000;
+end.

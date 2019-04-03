@@ -1,0 +1,23 @@
+var
+  a, b, c, n, x, y, z, k, aa, bb, cc, xm, ym, p : integer;
+begin
+  readln(n, a, b, c);
+  k := 0;
+  p := n div (a+b+c);
+  xm := (n-b-c) div a;
+  for x := p to xm do
+    begin
+      ym := (n-a-c) div b;
+      for y := p to ym do
+        begin
+          z := (n - x*a - y*b) div c;
+          if (z <> 0) and (x*y*z > k) then begin
+                              k := x*y*z;
+                              aa := x*a;
+                              bb := y*b;
+                              cc := z*c;
+                            end;
+        end;
+    end;    
+  writeln(aa, ' ', bb, ' ', cc);  
+end.

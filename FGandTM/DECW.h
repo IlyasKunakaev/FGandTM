@@ -28,6 +28,7 @@
     #define  rcomment     73               /*  '*)'  */
     #define  assign       51               /*  ':='  */
     #define  twopoints    74               /*  '..'  */
+	#define  onecomment   100			   /*  '//'  */
 
         /* типы  констант */
 

@@ -1,0 +1,58 @@
+type
+  xarray = array [1 .. 200000] of integer;
+  larray = array [1 .. 100000] of integer;
+var
+  n, m, i, p, j, t, s, k, d : integer;
+  x : xarray;
+  l : larray;
+  f1, f2 : text;
+
+begin
+  assign(f1, 'linear.in');
+  assign(f2, 'linear.out');
+  reset(f1);
+  rewrite(f2);
+  
+  readln(f1, n);
+  k := 0;
+  d := 0;
+  for i := 1 to n do
+    begin
+      readln(f1, s, p);
+      if p = 1 then begin
+                      k := k + 1;
+                      x[k] := s;
+                    end
+               else begin
+                      if k > 0 then begin
+                                      d := d + 1;
+                                      l[d] := s - x[k];
+                                      k := k - 1;
+                                    end;
+                    end;
+    end;
+    
+    
+  readln(f1, m);
+  s := 0;
+  n := n - 2*d;
+  for i := 1 to m do
+    begin
+      read(f1, t);
+      p := t - s;
+      for j := 1 to d do
+        l[j] := l[j] - 2*p;
+      for j := d downto 1 do
+        if l[j] <= 0 then begin
+                            for k := j + 1 to d do
+                              l[k-1] := l[k];
+                            d := d - 1;
+                          end; 
+                          
+      writeln(f2, n + 2*d);                           
+      s := t;
+    end;
+  
+  close(f1);
+  close(f2);
+end.

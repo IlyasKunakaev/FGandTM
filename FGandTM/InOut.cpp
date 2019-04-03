@@ -11,6 +11,8 @@
 using namespace std;
 #pragma endregion
 
+fstream F("pasCodesAndList\\progPascal6.txt", ios::in);
+
 #pragma region vars
 
 const short MAX_IDENT = 15;
@@ -21,12 +23,11 @@ const short ERRMAX = 10;				//макс. кол-во сохраняемых ош�
 short ErrInx = -1;						//кол-во найденных в текущей строке ошибок
 bool ErrorOverFlow, haveError = false;		//флаги на переполнение ошибок и наличие ошибок в строке		
 ofstream Flist;
-fstream F("F:\\FGMT\\PascalCode\\progPascal6.txt", ios::in);
-ofstream ListOfCode;
+
 unsigned SumErr = 1, lineOfCode = 1, sym, lname;
 map <int, string> AllErrors;
 map <int, string> ::iterator iter = AllErrors.begin();
-bool stop = false, theend = false, AllOk = true, isComment = false, haveComma = false, theendComment = false;
+bool stop = false, theend = false, AllOk = true, isComment = false, haveComma = false, theendComment = false, ff = false;
 int p, nmb_int;
 float nmb_float;
 char one_symbol, ch, str[MAXLINE], *addrname, name[MAX_IDENT];
@@ -40,10 +41,25 @@ typedef struct {
 }ErrListStruct[ERRMAX];
 ErrListStruct ErrList;
 textposition positionnow;
-textposition token;
+textposition token, token2;
 unsigned LastInLine;
 char* curLine;
 void nextsym();
+
+
+void mult();
+void addend();
+void simpleexpression();
+void expression();
+void cyclestatement();
+void whilestatement();
+void forstatement();
+void repeatstatement();
+void ifstatement();
+void casestatement();
+void statement();
+void constant();
+void type();
 
 #pragma endregion
 
@@ -65,7 +81,7 @@ void error(int code, textposition tp)	//формирование таблицы 
 void tableOfAllError()	//таблица со всеми возможными ошибками
 {
 	ifstream A;
-	A.open("F:\\FGMT\\PascalCode\\Err.txt");
+	A.open("Err.txt");
 	int key;
 	char value[85];
 	while (!A.eof())
@@ -122,9 +138,10 @@ void nextchComment()
 {
 	if (positionnow.charNumber == LastInLine)
 	{
-		printLine();
+		
 		if (!F.eof())
 		{
+			printLine();
 			LastInLine = readNextLine();
 			haveError = false;
 			positionnow.lineNumber++;
@@ -147,8 +164,6 @@ void nextch()
 	if (positionnow.charNumber == LastInLine)
 	{
 		printLine();
-		if (!isComment)
-			ListOfCode << endl;
 		if (haveError)
 		{
 			printErrors();
@@ -279,9 +294,8 @@ void processingNumber()
 
 void nextsym()
 {
-	while (ch == '\0' || ch == '\t')
+	while ((ch == '\0' || ch == '\t' || ch == ' ') && !stop)
 		nextch();
-
 	while (ch == ' ')
 		nextch();
 	token.lineNumber = positionnow.lineNumber;
@@ -296,9 +310,9 @@ void nextsym()
 	int i, j;
 	switch (p)
 	{
-	case (1):
+	case (1): {
 		lname = 0;
-		while (((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9')) && lname < MAX_IDENT)
+		while (((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') || ch == '_') && lname < MAX_IDENT)
 		{
 			name[lname++] = ch;
 			nextch();
@@ -313,14 +327,14 @@ void nextsym()
 		sym = keywords[i].codekey;
 		for (unsigned int k = 0; k < lname; k++)
 			name[k] = NULL;
-		break;
-	case (2):
+		break; }
+	case (2): {
 		processingNumber();
-		break;
-	case (3):
+		break; }
+	case (3): {
 		switch (ch)
 		{
-		case '<':
+		case '<':  {
 			nextch();
 			if (ch == '=')
 			{
@@ -335,9 +349,8 @@ void nextsym()
 				}
 				else
 					sym = later;
-			break;
-
-		case '>':
+			break; }
+		case '>':  {
 			nextch();
 			if (ch == '=')
 			{
@@ -346,9 +359,8 @@ void nextsym()
 			}
 			else
 				sym = greater;
-			break;
-
-		case ':':
+			break; }
+		case ':':  {
 			nextch();
 			if (ch == '=')
 			{
@@ -357,21 +369,18 @@ void nextsym()
 			}
 			else
 				sym = colon;
-			break;
-
-		case '+':
+			break; }
+		case '+':  {
 			sym = plus;
 			nextch();
-			break;
-
-		case '-':
+			break; }
+		case '-':  {
 			sym = minus;
 			char tmp;
 			nextch();
 			tmp = ch;
-			break;
-
-		case '*':
+			break; }
+		case '*':  {
 			nextch();
 			if (ch == ')')
 			{
@@ -380,49 +389,43 @@ void nextsym()
 			}
 			else
 				sym = star;
-			break;
-
-		case '/':
+			break; }
+		case '/':  {
 			nextch();
 			if (ch == '/')
 			{
-				isComment = true;
-				AllOk = false;
+				sym = onecomment;
 				while ((unsigned)positionnow.charNumber < LastInLine)
-				{
 					nextch();
-				}
 				nextch();
-				ListOfCode << endl;
-				isComment = false;
+				while (sym == onecomment)
+					nextsym();
 			}
 			else sym = slash;
-			break;
-
-		case '=':
+			break; }
+		case '=':  {
 			sym = equal;
 			nextch();
-			break;
-
-		case '(':
+			break; }
+		case '(':  {
 			nextch();
 			if (ch == '*')
 			{
-				AllOk = false;
 				sym = lcomment;
-				isComment = true;
 				do
 				{
 					nextchComment();
 					if (ch == '*')
 					{
-						tmp = ch;
+						char tmp = ch;
 						nextchComment();
 						if (ch == ')' && tmp == '*')
 						{
-							while ((unsigned)positionnow.charNumber < LastInLine)
-								nextchComment();
+							/*while ((unsigned)positionnow.charNumber < LastInLine)
+								nextchComment();*/
 							nextchComment();
+							while (sym == lcomment)
+								nextsym();
 							break;
 						}
 					}
@@ -431,52 +434,43 @@ void nextsym()
 				{
 					error(86, positionnow);
 					theend = true;
+					printLine();
 					printErrors();
 				}
-					
-				isComment = false;
 			}
 			else
 				sym = leftpar;
-			break;
-
-		case ')':
+			break; }
+		case ')':  {
 			sym = rightpar;
 			nextch();
-			break;
-
-		case '{':
-		{
-			AllOk = false;
-			isComment = true;
-			do
-			{
-				nextchComment();
-			} while (ch != '}' && !theendComment);
-			if (F.eof())
-			{
-				error(86, positionnow);
-				theend = true;
-				printErrors();
-			}
-			else 
-			{
-				while ((unsigned)positionnow.charNumber < LastInLine)
+			break; }
+		case '{':  {
+			sym = flpar;
+				do
+				{
 					nextchComment();
-				nextchComment();
-			}
-			isComment = false;
-		}
-		break;
-
-		case '}':
+				} while (ch != '}' && !theendComment);
+				if (F.eof())
+				{
+					error(86, positionnow);
+					theend = true;
+					printLine();
+					printErrors();
+				}
+				else
+				{
+					while (sym == flpar)
+						nextsym();
+				}
+			break; }
+		case '}':  {
 			nextch();
-			break;
-
-		case '\'':
+			break; }
+		case '\'': {
 			sym = charc;
 			j = 0;
-			tmp = ch;
+			char tmp = ch;
 			nextch();
 			if (ch == '\'')
 			{
@@ -497,21 +491,18 @@ void nextsym()
 				theend = true;
 				printErrors();
 			}
-			else 
+			else
 				nextch();
-			break;
-
-		case '[':
+			break; }
+		case '[':  {
 			sym = lbracket;
 			nextch();
-			break;
-
-		case ']':
+			break; }
+		case ']':  {
 			sym = rbracket;
 			nextch();
-			break;
-
-		case '.':
+			break; }
+		case '.':  {
 			nextch();
 			if (ch == '.')
 			{
@@ -522,37 +513,34 @@ void nextsym()
 			{
 				sym = point;
 				theend = true;
-				printLine();
+				//printLine();
 				if (haveError)
 					printErrors();
 			}
-			break;
-
-		case ',':
+			break; }
+		case ',':  {
 			sym = comma;
 			nextch();
-			break;
-
-		case '^':
+			break; }
+		case '^':  {
 			sym = arrow;
 			nextch();
-			break;
-
-		case ';':
+			break; }
+		case ';':  {
 			sym = semicolon;
 			nextch();
-			break;
-		case '\0':
-			while (ch == '\0')
+			break; }
+		case '\0': {
+			while (ch == '\0' && !stop)
 				nextch();
-			break;
-		default:
+			break; }
+		default:   {
 			error(6, positionnow);
 			AllOk = false;
 			haveError = true;
 			nextch();
-			break;
-		}
+			break; }
+		} }
 	}
 }
 
@@ -561,177 +549,504 @@ void nextsym()
 #pragma region Syntax
 
 /*
-Общая минимальная часть. Основные разделы программы: раздел описания переменных, раздел операторов. 
-Переменные стандартных типов (Boolean, integer, real, char). Числовые константы. 
-Арифметическое выражение (в выражении допустимы только константы, переменные, операции +, –, *, / и скобки). 
-Оператор присваивания и составной оператор.
+--------------------ОБЩАЯ МИНИМАЛЬАНЯ ЧАСТЬ----------------------- 
 
-Общая дополнительная часть. Раздел описания типов. 
-Выражение (полностью, включая арифметические, логические операции, сравнения и т.д., 
-			но только над константами и простыми переменными (не индексированные, не поля записи, не указатели)). 
-			Условный оператор (if). Оператор цикла с предусловием (while).
+Основные разделы программы: раздел описания переменных, 
+							раздел операторов (Условный оператор (if). Оператор цикла с предусловием (while). Оператор выбора (case). 
+							Оператор присваивания и составной оператор.) 
 
-Индивидуальная часть 
-12.	Раздел описания констант. Ссылочные типы данных. Указатели в выражениях. Оператор выбора (case).
+Переменные стандартных типов (Boolean, integer, real, char). 
+
+Числовые константы. 
+
+Арифметическое выражение (в выражении допустимы только константы, переменные, операции +, –, *, / и скобки + логические операции(сравнение и т.д.)) 
+Выражение (полностью, включая арифметические, логические операции, сравнения и т.д.,
+			но только над константами и простыми переменными и указателями (не индексированные, не поля записи)).
+
+--------------------ОБЩАЯ ДОПОЛНИТЕЛЬНАЯ ЧАСТЬ--------------------
+
+Раздел описания типов.
+Описание типов (скалярный, перечислимый, ссылочный)
+		
+
+----------------------ИНДИВИДУАЛЬНАЯ ЧАСТЬ------------------------ 
+12.	Раздел описания констант. 
+	
 */
-//void accept(unsigned symbolexpected)
-//{
-//	if (sym == symbolexpected)
-//		nextsym();
-//	else
-//		error(symbolexpected, token);
-//}
-//
-//void block()
-//{
-//	//labelpart();		//раздел меток
-//	constpart();		//раздел констант (инд)
-//	typepart();			//раздел типов (доп)
-//	varpart();			//раздел переменных (мин)
-//	//procfuncpart();		//раздел процедур и функций
-//	statementpart();	//раздел операторов (мин)
-//}
-//
-//void constpart()
-//{
-//
-//}
-//
-//void typepart()
-//{
-//
-//}
-//
-//void varpart()
-//{
-//	if (sym == varsy)
-//	{
-//		accept(varsy);
-//		do
-//		{
-//			vardeclaration();
-//			accept(semicolon);
-//		} while (sym == ident);
-//	}
-//}
-//
-//void vardeclaration()
-//{
-//	accept(ident);
-//	while (sym == comma)
-//	{
-//		accept(comma);
-//		accept(ident);
-//	}
-//	accept(colon);
-//	type();
-//}
-//
-//void type()
-//{
-//	switch (sym)
-//	{
-//	case (ident):	//идентификатор, имя
-//		accept(ident);
-//		break;
-//	case (leftpar):	//перечислимый тип
-//		numtype();
-//		break;
-//	case (plus):
-//		nextsym();
-//		accept(intc);
-//		break;
-//	case (minus):
-//		nextsym();
-//		accept(intc);
-//		break;
-//	case (intc):	
-//		accept(intc);
-//		accept(twopoints);
-//		accept(intc);
-//		break;
-//	case (charc):
-//		accept(charc);
-//		break;
-//	case (arrow): //ссылочный тип
-//		accept(arrow);
-//		break;
-//	}
-//}
-//
-//void numtype()
-//{
-//	accept(leftpar);
-//	accept(ident);
-//	while (sym == comma)
-//	{
-//		accept(comma);
-//		accept(ident);
-//	}
-//	accept(rightpar);
-//}
-//
-//void statementpart()
-//{
-//	accept(beginsy);
-//	statement();
-//	while (sym == semicolon)
-//	{
-//		accept(semicolon);
-//		if (sym != endsy)
-//			statement();
-//	}
-//	accept(endsy);
-//}
-//
-//void statement()
-//{
-//	if (sym != endsy)
-//	{
-//
-//	}
-//	else
-//		nextsym();
-//}
-//
-//void programme()
-//{
-//	accept(programsy);
-//	accept(ident);
-//	accept(semicolon);
-//	block();
-//	accept(point);
-//}
 
+void accept(unsigned symbolexpected)
+{
+	if (sym == symbolexpected)
+	{
+		nextsym();
+		if (sym == onecomment)
+			nextsym();
+	}
+	else
+	{
+		error(symbolexpected, token);
+		haveError = true;
+	}
+}
+
+//ПЕРЕМЕННАЯ
+void variable()
+{
+	accept(ident);
+	while (sym == lbracket || sym == point || sym == arrow)
+		switch (sym)
+		{
+		case lbracket:   // НУЖНО ЛИ??
+			accept(lbracket);
+			expression();
+			while (sym == comma)
+			{
+				accept(comma);
+				expression();
+			}
+			accept(rbracket);
+			break;
+		case point:		// НУЖНО ЛИ??
+			accept(point);
+			accept(ident);
+			break;
+		case arrow:
+			accept(arrow);
+			break;
+		}
+}
+
+//МНОЖИТЕЛЬ
+void mult()
+{
+	switch (sym)
+	{
+	case ident:
+		accept(ident);
+		if (sym == arrow)
+			accept(arrow);
+		break;
+	case intc:
+		if (nmb_int >= 0)
+			accept(intc);
+		else
+		{
+			error(50, token);
+			nextsym();
+		}
+		break;
+	case floatc:
+		if (nmb_float >= 0)
+			accept(floatc);
+		else
+		{
+			error(50, token);
+			nextsym();
+		}
+		break;
+	case nilsy:
+		accept(nilsy);
+		break;
+	case notsy:
+		accept(notsy);
+		mult();
+		break;
+	case leftpar:
+		accept(leftpar);
+		expression();
+		accept(rightpar);
+		break;
+	default:
+		error(322, token);
+		nextsym();
+	}
+}
+
+//СЛАГАЕМОЕ
+void addend()
+{
+	mult();
+	if (sym == star || sym == slash || sym == divsy || sym == modsy || sym == andsy)
+		while (sym == star || sym == slash || sym == divsy || sym == modsy || sym == andsy)
+		{
+			switch (sym)
+			{
+			case star:
+				accept(star);
+				break;
+			case slash:
+				accept(slash);
+				break;
+			case divsy:
+				accept(divsy);
+				break;
+			case modsy:
+				accept(modsy);
+				break;
+			case andsy:
+				accept(andsy);
+				break;
+			}
+			mult();
+		}
+	else if (sym != semicolon && sym != plus && sym != minus && sym != orsy && 
+		sym != later && sym != laterequal && sym != latergreater && sym != greater 
+		&& sym != greaterequal)
+		error(322, token); //  ------ ВЫБРАТЬ НОМЕР ОШИБКИ ------
+}
+
+//ВЫРАЖЕНИЕ             
+void expression()
+{
+	simpleexpression();
+	if (sym == equal || sym == latergreater || sym == later || sym == laterequal || sym == greaterequal ||
+		sym == greater)
+	{
+		switch (sym)
+		{
+		case equal:
+			accept(equal);
+			break;
+		case latergreater:
+			accept(latergreater);
+			break;
+		case later:
+			accept(later);
+			break;
+		case laterequal:
+			accept(laterequal);
+			break;
+		case greaterequal:
+			accept(greaterequal);
+			break;
+		case greater:
+			accept(greater);
+			break;
+		}
+		simpleexpression();
+	}
+}
+
+//АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ
+void simpleexpression()
+{
+	if (sym == minus || sym == plus)
+	{
+		if (sym == minus)
+			accept(minus);
+		else
+			accept(plus);
+	}
+	addend();
+	while (sym == plus || sym == minus || sym == orsy)
+	{
+		if (sym == plus)
+			accept(plus);
+		else if (sym == minus)
+			accept(minus);
+		else
+			accept(orsy);
+		/*token2.charNumber = positionnow.charNumber;
+		token2.lineNumber = positionnow.lineNumber;*/
+		
+		addend();
+
+		/*nextsym();
+		if (sym != plus || sym != minus || sym != star || sym != modsy || sym != divsy || sym != slash || sym != semicolon)
+		{
+			error(14, token2);
+			nextsym();
+		}*/
+	}
+}
+
+//ЦИКЛ С ПРЕДУСЛОВИЕМ (+++)
+void whilestatement()
+{
+	accept(whilesy);
+	expression();
+	accept(dosy);
+	statement();
+}
+
+//УСЛОВНЫЙ ОПЕРАТОР (+++)
+void ifstatement()
+{
+	accept(ifsy);
+	expression();
+	accept(thensy);
+	statement();
+	if (sym == elsesy)
+	{
+		accept(elsesy);
+		statement();
+	}
+}
+
+//ОПЕРАТОР
+void statement()
+{
+	if (sym != endsy)
+	{
+		if (sym == ident)
+		{
+			accept(ident);
+			if (sym == arrow)
+				accept(arrow);
+			if (sym == assign)
+			{
+				accept(assign);
+				expression();
+			}
+			else
+			{
+				error(51, token);
+				nextsym();
+			}
+		}
+		else
+		{
+			switch (sym)
+			{
+			case beginsy:{
+				accept(beginsy);
+				statement();
+				ff = (sym == endsy);
+				while (sym == semicolon && !ff)
+				{
+					accept(semicolon);
+					if (sym == endsy)
+					{
+						ff = true;
+					}
+					else
+						statement();
+					ff = (sym == endsy);
+				}
+				accept(endsy);
+				break; }
+			case ifsy: {
+				ifstatement();
+				break; }
+			case casesy: {
+				casestatement();
+				break; }
+			case whilesy: {
+				whilestatement();
+				break; }
+			default: {
+				error(322, token);
+				break; }
+			}
+		}
+	}
+	else
+		nextsym();
+}
+
+//СОСТАВНОЙ ОПЕРАТОР (+++)
+void statementpart() 
+{
+	accept(beginsy);
+	statement();
+	while (sym == semicolon && stop == false)
+	{
+		accept(semicolon);
+		if (sym != endsy)
+			statement();
+	}
+	accept(endsy);
+}
+
+//ЭЛЕМЕНТ СПИСКА ВАРИАНТА (+++)
+void caseelement()
+{
+	if (sym != endsy)
+	{
+		constant();
+		while (sym == comma)
+		{
+			accept(comma);
+			constant();
+		}
+		accept(colon);
+		statement();
+	}
+}
+
+//ОПЕРАТОР ВЫБОРА (+++)
+void casestatement()
+{
+	accept(casesy);
+	expression();
+	accept(ofsy);
+	caseelement();
+	while (sym == semicolon)
+	{
+		accept(semicolon);
+		caseelement();
+	}
+	accept(endsy);
+}
+
+//КОНСТАНТА 
+void constant()
+{
+	if (sym == intc || sym == charc || sym == floatc)
+	{
+		switch (sym)
+		{
+		case intc:
+			accept(intc);
+			break;
+		case charc:
+			accept(charc);
+			break;
+		case floatc:
+			accept(floatc);
+			break;
+		}
+	}
+	else
+	{
+		error(50, token); 
+		nextsym();
+	}
+}
+
+//ОПИСАНИЕ ПЕРЕМЕННЫХ (+++)
+void vardeclaration()
+{
+	accept(ident);
+	while (sym == comma)
+	{
+		accept(comma);
+		accept(ident);
+	}
+	accept(colon);
+	type();
+}
+
+//РАЗДЕЛ ОПИСАНИЯ ПЕРЕМЕННЫХ (+++)
+void varpart()
+{
+	if (sym == varsy)
+	{
+		accept(varsy);
+		do
+		{
+			vardeclaration();
+			accept(semicolon);
+		} while (sym == ident);
+	}
+}
+
+//ПЕРЕЧИСЛИМЫЙ ТИП (+++)
+void numtype()
+{
+	accept(leftpar);
+	accept(ident);
+	while (sym == comma)
+	{
+		accept(comma);
+		accept(ident);
+	}
+	accept(rightpar);
+}
+
+//ОПИСАНИЕ ТИПОВ (+-)
+void type()
+{
+	
+	switch (sym)
+	{
+	case (ident):	//идентификатор, имя (скалярный тип)
+		accept(ident);
+		break;
+	case (leftpar):	//перечислимый тип
+		numtype();
+		break;
+	case (arrow): //ссылочный тип
+		accept(arrow);
+		accept(ident);
+		break;
+	}
+}
+
+//РАЗДЕЛ ТИПОВ (+++)
+void typepart()
+{
+	if (sym == typesy)
+	{
+		accept(typesy);
+		while (sym == ident)
+		{
+			accept(ident);
+			accept(equal);
+			type();
+			accept(semicolon);
+		}
+	}
+}
+
+//РАЗДЕЛ КОНСТАНТ (+++)
+void constpart()
+{
+	if (sym == constsy)
+	{
+		accept(constsy);
+		while (sym == ident)
+		{
+			accept(ident);
+			accept(equal);
+			constant();
+			accept(semicolon);
+		}
+	}
+}
+
+void block()
+{
+	constpart();		//раздел констант (инд)
+	typepart();			//раздел типов (доп)
+	varpart();			//раздел переменных (мин)
+	statementpart();	//раздел операторов (мин)
+}
+
+void programme()
+{
+	if (sym == programsy)
+	{
+		accept(programsy);
+		accept(ident);
+		accept(semicolon);
+	}
+	block();
+	accept(point);
+}
+
+#pragma endregion
 
 
 void StartRead()
 {
 	char str[MAXLINE];
-	ListOfCode.open("F:\\fgmt\\ListOfCode.txt");
 	F.getline(str, MAXLINE, '\n');
 	positionnow.lineNumber = 0;
 	positionnow.charNumber = -1;
 	string s = curLine = str;
 	LastInLine = s.length();
-	while (!F.eof() || !theend)
-	{
-		AllOk = true;
-		nextsym();
-		if (AllOk)
-			ListOfCode << sym << " ";
-	}
-	ListOfCode.close();
+	nextsym();
+	programme();
 	Flist << "Компиляция окончена! Количество ошибок: " << SumErr - 1;
 }
 
-#pragma endregion
 
 int main()
 {
 	setlocale(LC_ALL, "rus");
 	tableOfAllError();
-	Flist.open("F:\\fgmt\\list.txt");
+	Flist.open("pasCodesAndList\\list.txt");
 	StartRead();
 	Flist.close();
 	return 0;

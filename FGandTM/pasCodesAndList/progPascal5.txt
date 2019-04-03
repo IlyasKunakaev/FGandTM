@@ -1,0 +1,17 @@
+var
+  n, m, i, p, j, t, s, k, d : integer;
+  f1, f2 : text;
+
+begin
+  assign(f2, 'linear.in');
+  rewrite(f2);
+  writeln(f2, 200000);
+  for i := 1 to 200000 do
+    begin
+      if  = 1 then writeln(f2, i-1, ' ', 1)
+                     else writeln(f2, i-1, ' ', -1)
+    end;
+  writeln(f2, 2);
+  writeln(f2, 0, ' ', 1);
+  close(f2);
+end.
