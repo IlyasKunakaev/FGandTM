@@ -46,3 +46,19 @@
     #define  FALSE         0               /* _______ Л О Ж Ь _______ */
     #define  TRUE          1               /* _____ И С Т И Н А _____ */
 
+	#define WORDLENGTH	  16
+	#define SET_SIZE	   8
+
+
+	#define PROGS 300
+	#define TYPES 301
+	#define CONSTS 302
+	#define VARS 303
+	#define PROCS 304
+	#define FUNCS 305
+	#define SCALARS 401
+	#define LIMITEDS 402
+	#define ENUMS 403
+
+
+

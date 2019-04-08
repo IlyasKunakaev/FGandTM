@@ -1,20 +1,13 @@
-program ;
-
-const G = 9.8;
-  H = 1;
-
-type 
-type_1 = real;
-type_2 = ^type_2;
-type_3 = boolean;
-
+program a;
+const 
+  H=1000;
+type
+  r=integer;
+  n=boolean;
 var
-  a:integer
-  b:integer  %;
-  c:integer$;
-  d:boolean;
-  e:^real;
-  f:char ;
+  b:
+  e:real;
+  f:char;
 begin
   a:=-123.411; //комментарий на одну строку
    if (G<43000) then
