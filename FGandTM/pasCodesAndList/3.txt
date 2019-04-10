@@ -1,0 +1,47 @@
+program example;
+const 
+  H=1000;
+type
+  r=integer;
+  n=boolean;
+var
+  b:integer;
+  e:real;
+  f:char;
+  ***1** a,l :integer;
+    b,f (a, ,f);
+    f1,f1:(a1,a2, ,a3) 56;
+    d1,,d2:; 
+begin
+	
+    if i:=1 then
+	begin
+        a:=5;
+	end;
+    while (a >= b) do
+    begin       
+            (* сложное выражение: *)
+            F:=5*h-345+(len*(54/g - 24*4) - j + 8/(las/(23 + f)-index));
+            
+            (* убитое выражение: *)
+            F:=5*h-345+(len*+(54/g - 24*4) - j + 8/(las/(23 + f)-index));         
+        
+        f:=1;
+        m:=f/8 + 5*a
+    end
+     a:=*(b*c;
+   **if (a < b) then
+       begin
+         k:=a*;
+       end
+     else begin
+       (a := k; 
+       case k+c of
+         1: begin
+             dd=dlk;
+             if a >= b) then k:=f 6;
+            end;
+         3: gg:=good;
+       end;
+     end;
+end/.

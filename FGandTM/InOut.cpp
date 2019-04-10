@@ -11,7 +11,7 @@
 using namespace std;
 #pragma endregion
 
-fstream F("pasCodesAndList\\2.txt", ios::in);
+fstream F("pasCodesAndList\\3.txt", ios::in);
 
 #pragma region vars
 
@@ -29,6 +29,7 @@ map <int, string> AllErrors;
 map <int, string> ::iterator iter = AllErrors.begin();
 bool stop = false, theend = false, AllOk = true, isComment = false, haveComma = false, theendComment = false, ff = false;
 int p, nmb_int;
+bool ifFlag = false;
 float nmb_float;
 char one_symbol, ch, str[MAXLINE], *addrname, name[MAX_IDENT];
 typedef struct {
@@ -62,91 +63,40 @@ void type(unsigned *followers);
 
 #pragma region ST_FOL
 unsigned
-*st_all, /*содержит programsy*/
-*comp_stat,
+*st_all,
 *m_scolon,
 *af_headfunproc,
-*m_twopoint,
 *m_colon,
 *m_fpar,
 *m_comma,
-*idstarters,		/* множество из одного стартового символа ident */
-*begpart,		/* стартовые символы функции block()		*/
-*rpar,			/* правая скобка 				*/
-*st_constpart,	/* стартовые символы функции constpart()	*/
-*st_typepart,		/* стартовые символы функции typepart()		*/
-*st_varpart,		/* стартовые символы функции varpart()		*/
-*st_statpart,		/* стартовые символы функции statpart()		*/
-*st_constant,	 	/* стартовые символы функции constant()		*/
-*st_conaftersign,	/* стартовые символы конструкции константы, 	*/
-/* идущей после знака + или -					*/
-*st_typ,		/* стартовые символы функции typ()		*/
-*st_simpletype,	/* стартовые символы функции simpletype()	*/
-*st_casefield,          /* стартовые символы функции casefield()	*/
-*st_statement,          /* стартовые символы конструкции <оператор>     */
-*st_startstatement,     /* стартовые символы оператора при нейтрализации*/
-*st_variant,            /* стартовые символы конструкции <вариант> в    */
-	/* раздела компиляции выражений 				*/
-	*st_express,		/* ... выражения 				*/
-	*st_termfact;		/* ... слагаемого и множителя 			*/
-
-
-	/* Описание реализуемых в виде битовых строк множеств символов, 	*/
-	/* ожидаемых сразу после обработки различных конструкций:		*/
+*idstarters,
+*begpart,
+*rpar,
+*st_constpart,
+*st_typepart,
+*st_varpart,
+*st_statpart,
+*st_typ,
+*st_statement,
+*st_startstatement,
+*st_express,
+*st_termfact;
 
 unsigned
-
-*blockfol,		/* ...после обработки блока основной программы  */
-*af_1constant,		/* ...после анализа константы при вызове функ-	*/
-/* ции constant() из функции constdeclaration(), а также после  */
-/* анализа конструкции объявления переменных при вызове функции */
-/* vardeclaration() из функции varpart()			*/
-*af_3const1,		/* ...после анализа первой константы отрезка	*/
-/* при обработке оного в функции simpletype()			*/
-*af_4const2,		/* ...после анализа второй константы отрезка	*/
-	/* при обработке оного в функции simpletype()			*/
-	*af_sameparam,
-	*af_assignment,         /* ...после анализа переменной в операторе      */
-		/* присваивания							*/
-	*af_compstatement,      /* ...после анализа оператора в составном оп-ре */
-	*af_iftrue,             /* ...после анализа условного выражения в опера-*/
-		/*торе if							*/
-	*af_iffalse,            /* ...после анализа оператора ветви "истина" в  */
-		/* операторе if							*/
-	*af_whilefor,		/* ...после анализа условного выражения в опера-*/
-		/* торе while и выражения-второй границы изменения параметра    */
-		/* цикла в операторе for					*/
-	*af_case1,              /* ...после анализа выбирающего выражения в case*/
-	*af_case2,              /* ...после анализа варианта в операторе case   */
-	*af_forassign,	        /* ...после анализа переменной в операторе for	*/
-	*af_for1, 		/* ...после анализа выражения-первой границы из-*/
-		/* менения параметра цикла в операторе for			*/
-	*af_ident,		/* ...после идентификатора в "переменной"	*/
-	*af_set1,		/* ...после 1-го выражения в конструкторе множ. */
-	*af_label,              /* ...после анализа метки в конструкции описания*/
-	*af_label1,             /* ... после анализа конструкции описания меток */
-	*af_constident,
-	*af_constident2;
-	/* Описание реализуемых в виде битовых строк множеств допустимых симво- */
-	/* лов операций в разделе компиляции выражений 				*/
+*blockfol,
+*af_3const1,
+*af_sameparam,
+*af_iftrue,
+*af_whilefor,
+*af_constident,
+*af_constident2,
+*af_other,
+*af_codesForAdd;
 
 unsigned
-
-*op_rel,		/* операции отношения над простыми выражениями	*/
-*op_add,		/* аддитивные операции над слагаемыми		*/
-*op_mult;		/* мультипликативные операции над множителями	*/
-
-/* Описание реализуемых в виде битовых строк множеств способов исполь-	*/
-/* зования идентификаторов:						*/
-
-unsigned
-
-*set_VARCONFUNCS,	/* доп. способы использования - VARS, CONSTS, FUNCS */
-*set_VARS,	/* допустимый способ использования - VARS		*/
-*set_TYPES, 	/* допустимый способ использования - TYPES 		*/
-*set_CONSTS,	/* допустимый способ использования - CONSTS 		*/
-*set_TYCON,     /* допустимые способы использования - TYPES,CONSTS	*/
-*set_VARFUNPR;  /* допустимые способы использования - VARS,FUNCS,PROCS  */
+*op_rel,
+*op_add,
+*op_mult;
 
 #pragma endregion
 
@@ -281,11 +231,12 @@ void processingNumber()
 	int digit;
 	nmb_int = 0;
 	nmb_float = 0;
-	bool errNumber = false, errInt = false;
+	bool errNumber = false, errInt = false, haveErrorNumber = false;
+
 	textposition errNum;
 	errNum.charNumber = positionnow.charNumber;
 	errNum.lineNumber = positionnow.lineNumber;
-	while (ch >= '0' && ch <= '9' && !haveError)
+	while (ch >= '0' && ch <= '9' && !haveErrorNumber)
 	{
 		digit = ch - '0';
 		if (nmb_int < MAXINT / 10 || (nmb_int == MAXINT / 10 && nmb_int <= MAXINT % 10))
@@ -295,6 +246,7 @@ void processingNumber()
 			nmb_int = 10 * nmb_int + digit;
 			errNumber = true;
 			haveError = true;
+			haveErrorNumber = true;
 			errInt = true;
 			nmb_float = (float)nmb_int;
 		}
@@ -312,6 +264,7 @@ void processingNumber()
 				nmb_float = 10 * nmb_float + digit;
 				errNumber = false;
 				haveError = false;
+				haveErrorNumber = false;
 			}
 			else
 			{
@@ -335,6 +288,7 @@ void processingNumber()
 				nmb_float = 0;
 				nmb_int = 0;
 				errNumber = true;
+				haveErrorNumber = true;
 				haveError = true;
 				while (ch >= '0' && ch <= '9')
 					nextch();
@@ -349,6 +303,7 @@ void processingNumber()
 			{
 				errNumber = true;
 				haveError = true;
+				haveErrorNumber = true;
 				error(201, errNum);
 			}
 			while (ch >= '0' && ch <= '9')
@@ -363,6 +318,7 @@ void processingNumber()
 		{
 			errNumber = true;
 			haveError = true;
+			haveErrorNumber = true;
 			error(201, errNum);
 		}
 		while (ch >= '0' && ch <= '9')
@@ -506,8 +462,6 @@ void nextsym()
 						nextchComment();
 						if (ch == ')' && tmp == '*')
 						{
-							/*while ((unsigned)positionnow.charNumber < LastInLine)
-								nextchComment();*/
 							nextchComment();
 							while (sym == lcomment)
 								nextsym();
@@ -599,8 +553,8 @@ void nextsym()
 				sym = point;
 				theend = true;
 				//printLine();
-				if (haveError)
-					printErrors();
+				//if (haveError)
+					//printErrors();
 			}
 			break; }
 		case ',':  {
@@ -618,6 +572,8 @@ void nextsym()
 		case '\0': {
 			while (ch == '\0' && !stop)
 				nextch();
+			if (stop)
+				sym = endoffile;
 			break; }
 		default:   {
 			error(6, positionnow);
@@ -698,7 +654,6 @@ void skipto2(unsigned *set1, unsigned *set2)
 {
 	while (!belong(sym, set1) && !belong(sym, set2) && !stop)
 		nextsym();
-	
 }
 
 //ПЕРЕМЕННАЯ
@@ -731,12 +686,29 @@ void variable(unsigned *followers)
 //МНОЖИТЕЛЬ
 void mult(unsigned *followers)
 {
+	//follower: endsy, elsesy, untilsy, ident, beginsy, ifsy, thensy, whilesy, forsy, casesy, 
+	//			semicolon, later, laterequal, greater, greaterequal, equal, 
+	//			latergreater, insy, eolint, point, orsy, endoffile
+	//			plus, minus, leftpar, lbracket, notsy, ident,
+	//			intc, floatc, charc, stringc, nilsy,
+	//			star, slash, divsy, modsy, andsy
+	//st_termfact: ident, leftpar, lbracket, notsy, intc, floatc, charc, stringc, nilsy, eolint
+
+	//followers from if->expr->simpleexpr->addend->MULT->expression->simpleexpression->addend->mult:	
+	//		twopoints, comma, rbracket, rightpar
+	//		endsy, elsesy, untilsy, ident, beginsy, ifsy, thensy, whilesy, forsy, casesy, 
+	//		semicolon, later, laterequal, greater, greaterequal, equal, 
+	//		latergreater, insy, eolint, point, orsy, endoffile
+	//		plus, minus, leftpar, lbracket, notsy, ident,
+	//		intc, floatc, charc, stringc, nilsy,
+	//		star, slash, divsy, modsy, andsy
+
 	unsigned ptra[SET_SIZE];
 	if (!belong(sym, st_termfact))
 	{
 		error(42, token);
 		haveError = true;
-		skipto2(st_termfact, followers);
+		skipto2(st_termfact,m_scolon);
 	}
 	if (belong(sym, st_termfact))
 	{
@@ -766,8 +738,7 @@ void mult(unsigned *followers)
 				haveError = true;
 				nextsym();
 			}
-			break;
-	}
+			break;	}
 		case nilsy: {
 			accept(nilsy);
 			break; }
@@ -777,8 +748,18 @@ void mult(unsigned *followers)
 			break; }
 		case leftpar: {
 			accept(leftpar);
-			set_disjunct(followers, af_3const1, ptra);//af_3const1 = twopoints,comma,rbracket
+			set_disjunct(followers, af_3const1, ptra);
+			//af_3const1:	twopoints, comma, rbracket, eolint
+			
+			//ptra: twopoints, comma, rbracket, rightpar
+			//		endsy, elsesy, untilsy, ident, beginsy, ifsy, thensy, whilesy, forsy, casesy, 
+			//		semicolon, later, laterequal, greater, greaterequal, equal, 
+			//		latergreater, insy, eolint, point, orsy, endoffile
+			//		plus, minus, leftpar, lbracket, notsy, ident,
+			//		intc, floatc, charc, stringc, nilsy,
+			//		star, slash, divsy, modsy, andsy
 			set_disjunct(ptra, rpar, ptra);
+			//rpar:			rightpar, eolint
 			expression(ptra);
 			if (sym == rightpar)
 				accept(rightpar);
@@ -796,6 +777,22 @@ void mult(unsigned *followers)
 //СЛАГАЕМОЕ
 void addend(unsigned *followers)
 {
+	//followers: endsy, elsesy, untilsy, ident, beginsy, ifsy, thensy, whilesy, forsy, casesy, 
+	//			semicolon, later, laterequal, greater, greaterequal, equal, 
+	//			latergreater, insy, eolint, eolint, point, plus, minus, orsy, endoffile
+	//st_express: plus, minus, leftpar, lbracket, notsy, ident,
+	//			  intc, floatc, charc, stringc, nilsy, eolint
+	//st_termfact: ident, leftpar, lbracket, notsy, intc, floatc, charc, stringc, nilsy, eolint
+
+	//followers from if->expr->simpleexpr->addend->MULT->expression->simpleexpression->addend:	
+	//		twopoints, comma, rbracket, rightpar
+	//		endsy, elsesy, untilsy, ident, beginsy, ifsy, thensy, whilesy, forsy, casesy, 
+	//		semicolon, later, laterequal, greater, greaterequal, equal, 
+	//		latergreater, insy, eolint, point, orsy, endoffile
+	//		plus, minus, leftpar, lbracket, notsy, ident,
+	//		intc, floatc, charc, stringc, nilsy,
+	//		star, slash, divsy, modsy, andsy
+
 	unsigned ptra[SET_SIZE];
 	if (!belong(sym, st_termfact))
 	{
@@ -807,7 +804,15 @@ void addend(unsigned *followers)
 	{
 		set_disjunct(followers, st_express, ptra);
 		set_disjunct(ptra, op_mult, ptra);
+		//ptra: endsy, elsesy, untilsy, ident, beginsy, ifsy, thensy, whilesy, forsy, casesy, 
+		//			semicolon, later, laterequal, greater, greaterequal, equal, 
+		//			latergreater, insy, eolint, point, orsy, endoffile
+		//			plus, minus, leftpar, lbracket, notsy, ident,
+		//			intc, floatc, charc, stringc, nilsy,
+		//			star, slash, divsy, modsy, andsy
+
 		mult(ptra);
+		//op_mult: star, slash, divsy, modsy, andsy, eolint
 		while (belong(sym, op_mult) && !F.eof())
 		{
 			nextsym();
@@ -817,7 +822,11 @@ void addend(unsigned *followers)
 		{
 			error(6, token);
 			haveError = true;
-			skipto(followers);
+			if (!ifFlag)
+				skipto(followers);
+			//af_other: beginsy, endsy, ifsy, thensy, whilesy, forsy, 
+			//			casesy, semicolon, endoffile, eolint
+			else skipto(af_codesForAdd);
 		}
 	}
 }
@@ -825,6 +834,21 @@ void addend(unsigned *followers)
 //ВЫРАЖЕНИЕ             
 void expression(unsigned *followers)
 {
+	//followers: endsy, elsesy, untilsy, ident, beginsy,
+	//			 ifsy, thensy, whilesy, forsy, casesy, semicolon, eolint, point, endoffile
+	//
+	//st_express: plus, minus, leftpar, lbracket, notsy, ident,
+	//			  intc, floatc, charc, stringc, nilsy, eolint
+
+	//followers from if->expr->simpleexpr->addend->MULT:	
+	//		twopoints, comma, rbracket, rightpar
+	//		endsy, elsesy, untilsy, ident, beginsy, ifsy, thensy, whilesy, forsy, casesy, 
+	//		semicolon, later, laterequal, greater, greaterequal, equal, 
+	//		latergreater, insy, eolint, point, orsy, endoffile
+	//		plus, minus, leftpar, lbracket, notsy, ident,
+	//		intc, floatc, charc, stringc, nilsy,
+	//		star, slash, divsy, modsy, andsy
+
 	unsigned ptra[SET_SIZE];
 	if (!belong(sym, st_express))
 	{
@@ -832,9 +856,13 @@ void expression(unsigned *followers)
 		haveError = true;
 		skipto2(st_express, followers);
 	}
-	if (!belong(sym, st_express))
+	if (belong(sym, st_express))
 	{
+		//op_rel: later, laterequal, greater, greaterequal, equal, latergreater, insy, eolint
 		set_disjunct(op_rel, followers, ptra);
+		//ptra: endsy, elsesy, untilsy, ident, beginsy, ifsy, thensy, whilesy, forsy, casesy, 
+		//		semicolon, later, laterequal, greater, greaterequal, equal, 
+		//		latergreater, insy, eolint, point, endoffile
 		simpleexpression(ptra);
 
 		if (sym == equal || sym == latergreater || sym == later || sym == laterequal || sym == greaterequal ||
@@ -875,6 +903,22 @@ void expression(unsigned *followers)
 //АРИФМЕТИЧЕСКОЕ ВЫРАЖЕНИЕ
 void simpleexpression(unsigned *followers)
 {
+	//followers: endsy, elsesy, untilsy, ident, beginsy, ifsy, thensy, whilesy, forsy, casesy, 
+	//		     semicolon, later, laterequal, greater, greaterequal, equal, 
+	//		     latergreater, insy, eolint, point, endoffile
+
+	//st_express: plus, minus, leftpar, lbracket, notsy, ident,
+	//			  intc, floatc, charc, stringc, nilsy, eolint
+
+	//followers from if->expr->simpleexpr->addend->MULT->expression->simpleexpression:	
+	//		twopoints, comma, rbracket, rightpar
+	//		endsy, elsesy, untilsy, ident, beginsy, ifsy, thensy, whilesy, forsy, casesy, 
+	//		semicolon, later, laterequal, greater, greaterequal, equal, 
+	//		latergreater, insy, eolint, point, orsy, endoffile
+	//		plus, minus, leftpar, lbracket, notsy, ident,
+	//		intc, floatc, charc, stringc, nilsy,
+	//		star, slash, divsy, modsy, andsy
+
 	unsigned ptra[SET_SIZE];
 	if (!belong(sym, st_express))
 	{
@@ -882,8 +926,14 @@ void simpleexpression(unsigned *followers)
 		haveError = true;
 		skipto2(st_express, followers);
 	}
+
 	if (belong(sym, st_express))
 	{
+		//op_add: plus, minus, orsy, eolint
+
+		//ptra: endsy, elsesy, untilsy, ident, beginsy, ifsy, thensy, whilesy, forsy, casesy, 
+		//		semicolon, later, laterequal, greater, greaterequal, equal, 
+		//		latergreater, insy, eolint, eolint, point, plus, minus, orsy, endoffile
 		set_disjunct(op_add, followers, ptra);
 		if (belong(sym, op_add))
 			nextsym();
@@ -921,21 +971,29 @@ void whilestatement(unsigned *followers)
 			skipto(st_startstatement);
 		}
 	}
-	statement(followers);//?????????????
+	statement(followers);
 }
 
 //УСЛОВНЫЙ ОПЕРАТОР (+++)
 void ifstatement(unsigned *followers)
 {
-	accept(ifsy);
 
+	//followers: endsy, elsesy, untilsy, ident, beginsy, 
+	//			 ifsy, thensy, whilesy, forsy, casesy, semicolon, eolint, point, endoffile
+	accept(ifsy);
+	ifFlag = true;
+	//st_express: plus, minus, leftpar, lbracket, notsy, ident,
+	//			  intc, floatc, charc, stringc, nilsy, eolint
 	if (belong(sym, st_express))
 	{
 		expression(followers);
+		ifFlag = false;
 		if (sym == thensy)
 			nextsym();
-		else {
+		else 
+		{
 			accept(thensy);
+			//st_startstatement: beginsy, ifsy, whilesy, forsy, casesy, semicolon, eolint
 			skipto(st_startstatement);
 		}
 	}
@@ -945,12 +1003,18 @@ void ifstatement(unsigned *followers)
 		nextsym();
 		statement(followers);
 	}
+	
 }
 
 //ОПЕРАТОР
 void statement(unsigned *followers)
 {
+	//followers: endsy, elsesy, untilsy, ident, beginsy, ifsy, 
+	//               whilesy, forsy, casesy, semicolon, eolint, point, endoffile
+
 	unsigned ptra[SET_SIZE];
+	//st_statement: endsy, elsesy, untilsy, ident, beginsy, ifsy, whilesy, 
+	//              forsy, casesy, semicolon, eolint
 	if (!belong(sym, st_statement))
 	{
 		error(113, token);
@@ -958,17 +1022,21 @@ void statement(unsigned *followers)
 		skipto2(st_statement, followers);
 	}
 
-	if (belong(sym, st_statement))//integerc,endsy,elsesy,untilsy,ident,beginsy,ifsy,whilesy,repeatsy,forsy,casesy,withsy,semicolon,gotosy,eolint
+	if (belong(sym, st_statement))
 	{
 		set_disjunct(followers, st_statement, ptra);
+		//ptra: endsy, elsesy, untilsy, ident, beginsy, 
+		//      ifsy, whilesy, forsy, casesy, semicolon, eolint, point, endoffile
 
 		switch (sym)
 		{
 		case whilesy:
+			//af_whilefor: dosy, eolint
 			set_disjunct(ptra, af_whilefor, ptra);
 			whilestatement(ptra);
 			break;
 		case ifsy:
+			//af_iftrue: thensy, eolint
 			set_disjunct(ptra, af_iftrue, ptra);
 			ifstatement(ptra);
 			break;
@@ -977,7 +1045,7 @@ void statement(unsigned *followers)
 			break;
 		case beginsy:
 			accept(beginsy);
-			statement(followers);//?????????????
+			statement(ptra);
 			ff = (sym == endsy);
 			while (sym == semicolon && !ff)
 			{
@@ -987,7 +1055,7 @@ void statement(unsigned *followers)
 					ff = true;
 				}
 				else
-					statement(followers); //????????
+					statement(followers); //followers: point, endoffile
 				ff = (sym == endsy);
 			}
 			accept(endsy);
@@ -996,25 +1064,25 @@ void statement(unsigned *followers)
 			accept(ident);
 			switch (sym)
 			{
-				if (sym == arrow)
+			case arrow:
 					accept(arrow);
-				if (sym == assign)
-				{
-					accept(assign);
-					expression(followers);  //?????
-				}
-				else
+					break;
+			case assign: {
+				accept(assign);
+				expression(followers);
+				break; } //followers: point, endoffile}
+			default:
 				{
 					error(51, token);
 					haveError = true;
-					nextsym();
+					skipto(m_scolon);
 				}
 			}
 			break;
 		case endsy:		
 			break;
 		}
-		if (!belong(sym, followers))
+		if (!belong(sym, followers)) //followers: point, endoffile
 		{
 			error(6, token);
 			haveError = true;
@@ -1026,15 +1094,34 @@ void statement(unsigned *followers)
 //СОСТАВНОЙ ОПЕРАТОР (+++)
 void statementpart(unsigned *followers)
 {
-	accept(beginsy);
-	statement(followers);
-	while (sym == semicolon && stop == false)
+	//followers: point, endoffile
+
+	unsigned ptra[SET_SIZE];
+
+	if (!belong(sym, st_statpart))//st_statpart: beginsy, eolint
 	{
-		accept(semicolon);
-		if (sym != endsy)
-			statement(followers);//?????????????
+		error(17, token);
+		skipto2(st_statpart, followers);
 	}
-	accept(endsy);
+	if (belong(sym, st_statpart))//st_statpart
+	{
+		accept(beginsy);
+		set_disjunct(followers, st_statement, ptra); 
+		// st_statement: endsy, elsesy, untilsy, ident, beginsy, ifsy, 
+		//               whilesy, forsy, casesy, semicolon, eolint
+		//		   ptra: +point,+endoffile
+		while (sym != endsy && !stop) {
+			statement(ptra);
+			accept(semicolon);
+		}
+		accept(endsy);
+		if (!belong(sym, followers))
+		{
+			error(61, token);
+			haveError = true;
+			skipto(followers);
+		}
+	}
 }
 
 //ЭЛЕМЕНТ СПИСКА ВАРИАНТА (+++)
@@ -1049,7 +1136,7 @@ void caseelement(unsigned *followers)
 			constant();
 		}
 		accept(colon);
-		statement(followers);//?????????????
+		statement(followers);
 	}
 }
 
@@ -1063,7 +1150,7 @@ void casestatement(unsigned *followers)
 	while (sym == semicolon)
 	{
 		accept(semicolon);
-		caseelement(followers); //?????????????
+		caseelement(followers);
 	}
 	accept(endsy);
 }
@@ -1120,9 +1207,8 @@ void vardeclaration(unsigned *followers)
 			type(followers);
 			if (!belong(sym, followers))
 			{
-				//error(6, token);
+				error(14, token);
 				haveError = true;
-				printErrors();
 				skipto2(followers,idstarters);
 			}
 		}
@@ -1150,13 +1236,16 @@ void varpart(unsigned *followers)
 		{
 			vardeclaration(ptra);
 			accept(semicolon);
+			if (sym != ident)
+				if (!belong(sym, followers))
+				{
+					error(2, token);
+					haveError = true;
+					skipto(ptra);
+					nextsym();
+					printErrors();
+				}
 		} while (sym == ident);
-		if (!belong(sym, followers))
-		{
-			error(2, token);
-			haveError = true;
-			skipto(followers);
-		}
 	}
 }
 
@@ -1316,9 +1405,12 @@ void block(unsigned *followers)  //followers: point, endoffile
 		statementpart(followers);
 		if (!belong (sym, followers))
 		{
-		error(6,token);
-		haveError = true;
-		skipto(followers);
+			if (!stop)
+				error(6,token);
+			//haveError = true;
+			
+			skipto(followers);
+			printErrors();
 		}
 	}
 }
@@ -1328,16 +1420,20 @@ void programme(unsigned *followers)
 	//followers: point, endoffile, eolint
 	//begpart: labelsy, constsy, typesy, varsy, functionsy, proceduresy, beginsy, eolint
 	//st_all: programsy, eolint
+	//af_headfunproc: varsy, constsy, labelsy, typesy, beginsy, point, semicolon, endoffile, eolint
 	unsigned ptra[SET_SIZE];
 	set_disjunct(st_all, af_headfunproc, ptra);
 	bool prog = true;
 	if (!belong(sym, ptra))
 	{
 		error(3, token);
-		haveError = true; 
-		prog = false;
+		haveError = true;
 		nextsym();
-		skipto2(ptra, idstarters);
+		if (sym != programsy)
+		{
+			prog = false;
+			skipto2(ptra, idstarters);
+		}
 	}
 
 	if (belong(sym, ptra) || belong(sym,idstarters))
@@ -1361,8 +1457,6 @@ void programme(unsigned *followers)
 			accept(semicolon);
 		block(blockfol);
 		accept(point);
-		/*while (!F.eof()) 
-			nextch();*/
 	}
 }
 
@@ -1415,65 +1509,43 @@ void st_follow()
 		codes_rightpar[] = { rightpar, eolint },
 		codes_constant[] = { plus, minus, charc, stringc, ident, intc, floatc, eolint },
 		codes_typ[] = { arrow, arraysy, filesy, setsy, recordsy, plus, minus, ident, leftpar, intc, charc, stringc, eolint },
-		codes_fixpart[] = { ident, semicolon, casesy, endsy, eolint },
-		codes_casefield[] = { floatc, endsy, semicolon, plus, minus, charc, stringc, ident, intc, eolint },
-		codes_statement[] = { intc, endsy, elsesy, untilsy, ident, beginsy, ifsy, whilesy, forsy, casesy, semicolon, eolint },
+		codes_statement[] = { endsy, elsesy, untilsy, ident, beginsy, ifsy, whilesy, forsy, casesy, ofsy, semicolon, eolint },
 		codes_express[] = { plus, minus, leftpar, lbracket, notsy, ident,intc, floatc, charc, stringc, nilsy, eolint },
 		codes_termfact[] = { ident, leftpar, lbracket, notsy, intc, floatc, charc, stringc, nilsy, eolint };
 
 	unsigned
 		acodes_block[] = { point, endoffile, eolint },
-		acodes_simpletype[] = { comma, rbracket, eolint },
-		acodes_fixpart[] = { casesy, rightpar, endsy, eolint },
 		acodes_typ[] = { endsy, rightpar, semicolon, eolint },
-		acodes_2constant[] = { comma, colon, eolint },
 		acodes_3const[] = { twopoints, comma, rbracket, eolint },
-		acodes_listparam[] = { colon, semicolon, constsy, varsy, eolint },
-		acodes_factparam[] = { comma, rightpar, eolint },
-		acodes_assign[] = { assign, eolint },
-		acodes_compcase[] = { semicolon, endsy, eolint },
 		acodes_iftrue[] = { thensy, eolint },
-		acodes_iffalse[] = { elsesy, eolint },
 		acodes_wiwifor[] = { comma,dosy, eolint },
-		acodes_repeat[] = { untilsy, semicolon, eolint },
-		acodes_case1[] = { ofsy, eolint },
-		acodes_for1[] = { tosy, downtosy, eolint },
-		acodes_ident[] = { lbracket, arrow, point, eolint },
-		acodes_index[] = { rbracket, comma, eolint },
-		acodes_set1[] = { rbracket, twopoints, comma, eolint };
-
+		acodes_constident[] = { ident, equal, intc, floatc, semicolon, eolint },
+		acodes_constident2[] = { intc, floatc, semicolon, eolint },
+		acodes_AddendSkip[] = { endsy, elsesy, untilsy, ident, beginsy, ifsy, thensy, whilesy, forsy, casesy,
+					semicolon, later, laterequal, greater, greaterequal, equal,
+					latergreater, insy, point, plus, minus, orsy, endoffile, eolint },
+		acodes_other[] = { beginsy, endsy, ifsy, thensy, whilesy, forsy, casesy, semicolon, endoffile, eolint };
+	
 	unsigned
 		codes_rel[] = { later, laterequal, greater, greaterequal, equal, latergreater, insy, eolint },
 		codes_add[] = { plus, minus, orsy, eolint },
 		codes_mult[] = { star, slash, divsy, modsy, andsy, eolint };
 
 	unsigned
-		codes_VARCONFUNCS[] = { VARS, FUNCS, CONSTS, eolint },
-		codes_VARS[] = { VARS, eolint },
-		codes_CONSTS[] = { CONSTS, eolint },
-		codes_TYPES[] = { TYPES, eolint },
-		codes_TYCON[] = { TYPES, CONSTS, eolint },
-		codes_FUNCS[] = { FUNCS, eolint },
-		twpoint_m[] = { twopoints, eolint },
 		colon_m[] = { colon, semicolon, eolint },
-		f_param[] = { varsy, functionsy, proceduresy, ident, eolint },
 		af_head[] = { varsy, constsy, labelsy, typesy, beginsy, point, semicolon, endoffile, eolint },
 		comma_m[] = { comma, eolint },
-		semcol_m[] = { semicolon, eolint },
-		acodes_constident[] = { ident, equal, intc, floatc, semicolon, eolint },
-		acodes_constident2[] = { intc, floatc, semicolon, eolint };
+		semcol_m[] = { semicolon, eolint };
+
 #pragma endregion
 
 
 #pragma region
 
 	st_all = Convert_To_Bits(codes_st_all);
-	comp_stat = Convert_To_Bits(codes_statement + 4);
 	m_scolon = Convert_To_Bits(semcol_m);
-		m_comma = Convert_To_Bits(comma_m),
-		af_headfunproc = Convert_To_Bits(af_head),
-		m_fpar = Convert_To_Bits(f_param);
-	m_twopoint = Convert_To_Bits(twpoint_m);
+	m_comma = Convert_To_Bits(comma_m),
+	af_headfunproc = Convert_To_Bits(af_head),
 	m_colon = Convert_To_Bits(colon_m);
 
 	idstarters = Convert_To_Bits(codes_idstart);
@@ -1482,51 +1554,29 @@ void st_follow()
 	st_typepart = Convert_To_Bits(codes_block + 2);
 	st_varpart = Convert_To_Bits(codes_block + 3);
 	st_statpart = Convert_To_Bits(codes_block + 6);
-	st_constant = Convert_To_Bits(codes_constant);
-	st_conaftersign = Convert_To_Bits(codes_constant + 4);
 	st_typ = Convert_To_Bits(codes_typ);
-	st_simpletype = Convert_To_Bits(codes_typ + 5);
-	st_casefield = Convert_To_Bits(codes_casefield + 1);
-	st_startstatement = Convert_To_Bits(codes_statement + 5);
+	st_startstatement = Convert_To_Bits(codes_statement + 4);
 	st_statement = Convert_To_Bits(codes_statement);
-	st_variant = Convert_To_Bits(codes_casefield);
 
 	st_express = Convert_To_Bits(codes_express);
 	st_termfact = Convert_To_Bits(codes_termfact);
 
 	blockfol = Convert_To_Bits(acodes_block);
 	rpar = Convert_To_Bits(codes_rightpar);
-	af_1constant = Convert_To_Bits(acodes_typ + 2);
 	af_3const1 = Convert_To_Bits(acodes_3const);
-	af_4const2 = Convert_To_Bits(acodes_3const + 1);
 	af_sameparam = Convert_To_Bits(acodes_typ + 1);
+	af_other = Convert_To_Bits(acodes_other);
+	af_codesForAdd = Convert_To_Bits(acodes_AddendSkip);
 
-	af_assignment = Convert_To_Bits(acodes_assign);
-	af_compstatement = Convert_To_Bits(acodes_compcase);
 	af_iftrue = Convert_To_Bits(acodes_iftrue);
-	af_iffalse = Convert_To_Bits(acodes_iffalse);
 	af_whilefor = Convert_To_Bits(acodes_wiwifor + 1);
-	af_case1 = Convert_To_Bits(acodes_case1);
-	af_case2 = Convert_To_Bits(acodes_compcase);
-	af_for1 = Convert_To_Bits(acodes_for1);
-	af_forassign = Convert_To_Bits(acodes_assign);
 
-	af_set1 = Convert_To_Bits(acodes_set1);
-	af_ident = Convert_To_Bits(acodes_ident);
-	af_label = Convert_To_Bits(acodes_index + 1);
-	af_label1 = Convert_To_Bits(codes_block + 1);
 	af_constident = Convert_To_Bits(acodes_constident);
 	af_constident2 = Convert_To_Bits(acodes_constident2);
 
 	op_rel = Convert_To_Bits(codes_rel);
 	op_add = Convert_To_Bits(codes_add);
 	op_mult = Convert_To_Bits(codes_mult);
-
-	set_VARCONFUNCS = Convert_To_Bits(codes_VARCONFUNCS);
-	set_VARS = Convert_To_Bits(codes_VARS);
-	set_TYPES = Convert_To_Bits(codes_TYPES);
-	set_CONSTS = Convert_To_Bits(codes_CONSTS);
-	set_TYCON = Convert_To_Bits(codes_TYCON);
 #pragma endregion
 
 }

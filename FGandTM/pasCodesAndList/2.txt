@@ -5,10 +5,15 @@ type
   r=integer;
   n=boolean;
 var
-  b:
+  b:integer;
   e:real;
   f:char;
+  ***1** a,l :integer;
+    b,f (a, ,f);
+    f1,f1:(a1,a2, ,a3) 56;
+    d1,,d2:; 
 begin
+  134;
   a:=-123.411; //комментарий на одну строку
    if (G<43000) then
   begin
